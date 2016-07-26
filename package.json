@@ -1,0 +1,53 @@
+{
+  "name": "space-assaulter",
+  "version": "0.0.1",
+  "description": "A three dimensional browser based real time strategy game",
+  "keywords": [
+    "HTML5",
+    "canvas",
+    "webgl",
+    "game"
+  ],
+  "bugs": {
+    "url": "https://github.com/HackRVA/space-assaulter/issues"
+  },
+  "repository": "https://github.com/HackRVA/space-assaulter.git",
+  "license": "MIT",
+  "author": {
+    "name": "Space Assaulter Team at HackRVA"
+  },
+  "contributors": [
+    {
+      "name": "Matthew Balch",
+      "email": "matbalch@vt.edu"
+    },
+    {
+      "name": "Aaron Nipper"
+    },
+    {
+      "name": "Dustin Firebaugh"
+    }
+  ],
+  "main": "",
+  "dependencies": {},
+  "devDependencies": {
+    "broccoli-cli": "^1.0.0",
+    "broccoli-rollup": "0.0.4",
+    "canvas-screens": "git://github.com/Matt5sean3/canvas-screens.git",
+    "rollup-plugin-commonjs": "^3.3.1",
+    "rollup-plugin-node-resolve": "^1.7.1",
+    "three": "^0.79.0"
+  },
+  "jshintConfig": {
+    "esversion": 6
+  },
+  "scripts": {
+    "clean": "rm -rf build",
+    "build": "node_modules/.bin/broccoli build build",
+    "prepublish": "npm run clean; npm run build",
+    "lint": "node_modules/.bin/jshint src",
+    "lint-tests": "node_modules/.bin/jshint test",
+    "mocha-tests": "node_modules/.bin/mocha --compilers js:babel-core/register",
+    "test": "npm run lint; npm run lint-tests; npm run mocha-tests"
+  }
+}
