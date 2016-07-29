@@ -15,7 +15,7 @@ GLScreen.init = function(renderer) {
   this.scene = new Scene();
   // Creates a perspective camera with a 1 meter near plane and 10,000 meter far plane
   // positioned at 0, 0, 1000
-  this.camera = new PerspectiveCamera( 0.75, target.width / target.height, 1, 10000);
+  this.camera = new PerspectiveCamera( 3, target.width / target.height, 1, 10000);
 }
 
 GLScreen.draw = function(currentTime) {

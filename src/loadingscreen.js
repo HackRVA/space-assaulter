@@ -5,7 +5,6 @@ const LoadingManager = THREE.LoadingManager;
 const Mesh = THREE.Mesh;
 const SpotLight = THREE.SpotLight;
 const MeshLambertMaterial = THREE.MeshLambertMaterial;
-const MeshBasicMaterial = THREE.MeshBasicMaterial;
 const JSONLoader = THREE.JSONLoader;
 
 // Fades in a light above the hack.rva logo
@@ -16,18 +15,16 @@ LoadingScreen.init = function(renderer, load_geom_path) {
   NestingScreen.init.call(this, renderer);
 
   this.completion = 0;
+  this.done = false;
   this.loader = new LoadingManager((function() {
-    // onLoad
+    this.done = true;
   }).bind(this),
+
   (function(item, loaded, total) {
-      console.log(item);
-      console.log("loaded: " + loaded);
-      console.log("total: " + total);
       if(total)
         this.completion = loaded / total;
       else
         this.completion = 1;
-      console.log(this.completion);
   }).bind(this));
 
   this.hack_rva_mesh = null;
@@ -36,11 +33,8 @@ LoadingScreen.init = function(renderer, load_geom_path) {
   var material = new MeshLambertMaterial({
     "color": 0xFFFFFF
   });
-//  var material = new MeshBasicMaterial({
-//    "color": 0xFFFFFF
-//  });
 
-  var light = new SpotLight(0xFFFFFF, 1.0, 1000);
+  var light = new SpotLight(0xFFFFFF, 1.0, 700);
   light.position.y = 200;
   this.getScene().add(light);
   this.mesh = null;
@@ -51,7 +45,7 @@ LoadingScreen.init = function(renderer, load_geom_path) {
       this.mesh.rotation.x = Math.PI / 2;
       this.getScene().add(this.mesh);
     }).bind(this));
-  this.getCamera().position.z = 500;
+  this.getCamera().position.z = 100;
 };
 
 LoadingScreen.getLoader = function() {
@@ -60,8 +54,13 @@ LoadingScreen.getLoader = function() {
 
 LoadingScreen.draw = function(currentTime) {
   if(this.mesh) {
-    this.mesh.rotation.x = this.completion * Math.PI / 2;
+    var rotation = Math.min(this.elapsedTime / 2, this.completion);
+    this.mesh.rotation.x = rotation * Math.PI / 2;
   }
   NestingScreen.draw.call(this, currentTime);
+  if(this.done && this.elapsedTime > 2.5) {
+    console.log(this.elapsedTime);
+    this.descend(0);
+  }
 };
 
