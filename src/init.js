@@ -47,6 +47,16 @@ export function init() {
   options[2].position.z = -1000;
   options[2].position.x = 20;
 
+  options[0].addOnSelect(function() {
+    console.log("first");
+  });
+  options[1].addOnSelect(function() {
+    console.log("second");
+  });
+  options[2].addOnSelect(function() {
+    console.log("third");
+  });
+
   // Load all the desired 
   ScreenGraph.create([
     loadscreen,

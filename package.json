@@ -34,6 +34,7 @@
     "broccoli-cli": "^1.0.0",
     "broccoli-rollup": "0.0.4",
     "canvas-screens": "git://github.com/Matt5sean3/canvas-screens.git",
+    "jshint": "^2.9.2",
     "rollup-plugin-commonjs": "^3.3.1",
     "rollup-plugin-node-resolve": "^1.7.1",
     "three": "^0.79.0"

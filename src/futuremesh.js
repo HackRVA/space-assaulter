@@ -20,9 +20,9 @@ FutureMesh.init = function(url, loader) {
     this.material = materials[0];
     this.userData.ready = true;
   }).bind(this));
-}
+};
 
 FutureMesh.isReady = function() {
   return this.userData.ready;
-}
+};
 

@@ -13,21 +13,21 @@ Entity.init = function(mesh, bbox) {
   this.bbox = (bbox === undefined)? mesh : bbox;
   this.add(this.mesh);
   this.add(this.bbox);
-}
+};
 
 Entity.clone = function() {
   return Entity.create(this.mesh.clone(), this.bbox.clone());
-}
+};
 
 Entity.getBBox = function() {
   return this.bbox;
-}
+};
 
 Entity.getMesh = function() {
   return this.mesh;
-}
+};
 
 Entity.intersected = function(ray) {
   return ray.intersectObject(this.bbox).length > 0;
-}
+};
 

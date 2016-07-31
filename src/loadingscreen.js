@@ -50,7 +50,7 @@ LoadingScreen.init = function(renderer, load_geom_path) {
 
 LoadingScreen.getLoader = function() {
   return this.loader;
-}
+};
 
 LoadingScreen.draw = function(currentTime) {
   if(this.mesh) {
