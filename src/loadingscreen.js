@@ -59,7 +59,6 @@ LoadingScreen.draw = function(currentTime) {
   }
   NestingScreen.draw.call(this, currentTime);
   if(this.done && this.elapsedTime > 2.5) {
-    console.log(this.elapsedTime);
     this.descend(0);
   }
 };

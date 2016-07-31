@@ -4,6 +4,8 @@ import { ScreenGraph } from 'canvas-screens';
 // internal
 import { LoadingScreen } from './loadingscreen.js';
 import { MenuScreen } from './menuscreen.js';
+import { Selectable } from './selectable.js';
+import { FutureMesh } from './futuremesh.js';
 import THREE from 'three';
 const WebGLRenderer = THREE.WebGLRenderer;
 const JSONLoader = THREE.JSONLoader;
@@ -16,31 +18,39 @@ export function init() {
   });
   var loadscreen = LoadingScreen.create(renderer, "resources/hackrva.json");
   var loader = loadscreen.getLoader();
-
-  var mesh_urls = [
-    "resources/serpent.json",
-    "resources/space-station.json",
-    "resources/tank.json"];
-
-  var meshes = new Array(mesh_urls.length);
   var mesh_loader = new JSONLoader(loader);
-  for(var c = 0; c < mesh_urls.length; c++) {
-    var mesh_url = mesh_urls[c];
-    mesh_loader.load(mesh_url, (function(i, geometry, materials){
-      meshes[i] = new Mesh(geometry, materials[0]);
-    }).bind(null, c));
-  }
 
-  var material_urls = [
-    ""
-  ];
+  var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
+  var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
+  var tank = FutureMesh.create("resources/tank.json", mesh_loader);
+
+  var options = [
+    Selectable.create(serpent),
+    Selectable.create(space_station),
+    Selectable.create(tank)];
 
   // Load data
+  options[0].addOnSelect(function() {
+    console.log("Selected Mesh 0ne");
+  });
+  options[1].addOnSelect(function() {
+    console.log("Selected Mesh Two");
+  });
+  options[2].addOnSelect(function() {
+    console.log("Selected Mesh Three");
+  });
+
+  options[0].position.z = -1000;
+  options[0].position.x = -20;
+  options[1].position.z = -1000;
+  options[1].position.x = 0;
+  options[2].position.z = -1000;
+  options[2].position.x = 20;
 
   // Load all the desired 
   ScreenGraph.create([
     loadscreen,
-    MenuScreen.create(renderer, meshes)
+    MenuScreen.create(renderer, options, [])
   ], [[1], []]).open();
 }
 
