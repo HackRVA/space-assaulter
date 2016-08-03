@@ -2,7 +2,7 @@ import { GLScreen } from './glscreen.js';
 
 export const NestingScreen = Object.create(GLScreen);
 
-NestingScreen.init = function(renderer, tree) {
+NestingScreen.init = function(renderer) {
   GLScreen.init.call(this, renderer);
   this.above = null;
 };

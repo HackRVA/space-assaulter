@@ -4,6 +4,7 @@ import { ScreenGraph } from 'canvas-screens';
 // internal
 import { LoadingScreen } from './loadingscreen.js';
 import { MenuScreen } from './menuscreen.js';
+import { MapScreen } from './mapscreen.js';
 import { Selectable } from './selectable.js';
 import { FutureMesh } from './futuremesh.js';
 import THREE from 'three';
@@ -29,17 +30,6 @@ export function init() {
     Selectable.create(space_station),
     Selectable.create(tank)];
 
-  // Load data
-  options[0].addOnSelect(function() {
-    console.log("Selected Mesh 0ne");
-  });
-  options[1].addOnSelect(function() {
-    console.log("Selected Mesh Two");
-  });
-  options[2].addOnSelect(function() {
-    console.log("Selected Mesh Three");
-  });
-
   options[0].position.z = -1000;
   options[0].position.x = -20;
   options[1].position.z = -1000;
@@ -47,20 +37,30 @@ export function init() {
   options[2].position.z = -1000;
   options[2].position.x = 20;
 
-  options[0].addOnSelect(function() {
-    console.log("first");
-  });
-  options[1].addOnSelect(function() {
-    console.log("second");
-  });
-  options[2].addOnSelect(function() {
-    console.log("third");
-  });
-
   // Load all the desired 
-  ScreenGraph.create([
+  var graph = ScreenGraph.create([
     loadscreen,
-    MenuScreen.create(renderer, options, [])
-  ], [[1], []]).open();
+    MenuScreen.create(renderer, options, []),
+    MapScreen.create(renderer, [])
+  ], [[1], [2, 0, 0], [1]])
+
+  console.log(graph);
+
+  // Load data
+  options[0].addOnSelect((function() {
+    console.log("Descend 0");
+    this.descend(0);
+  }).bind(graph));
+  options[1].addOnSelect((function() {
+    console.log("Descend 1");
+    this.descend(1);
+  }).bind(graph));
+  options[2].addOnSelect((function() {
+    console.log("Descend 2");
+    this.descend(2);
+  }).bind(graph));
+
+  // Start everything up
+  graph.open();
 }
 

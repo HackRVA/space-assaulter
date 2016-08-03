@@ -32,6 +32,7 @@
   "dependencies": {},
   "devDependencies": {
     "broccoli-cli": "^1.0.0",
+    "broccoli-merge-trees": "^1.1.2",
     "broccoli-rollup": "0.0.4",
     "canvas-screens": "git://github.com/Matt5sean3/canvas-screens.git",
     "jshint": "^2.9.2",

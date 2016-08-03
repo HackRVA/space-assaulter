@@ -1,6 +1,7 @@
 import { NestingScreen } from './nestingscreen.js';
 import THREE from 'three';
 const Vector2 = THREE.Vector2;
+const Raycaster = THREE.Raycaster;
 
 function getMousePosition(e, target) {
   var vect = new Vector2();
@@ -26,8 +27,9 @@ function getMousePosition(e, target) {
 export const ClickScreen = Object.create(NestingScreen);
 
 ClickScreen.init = function(renderer, options) {
-  NestingScreen.init.call(this, renderer, options);
-  this.options = options;
+  NestingScreen.init.call(this, renderer);
+  if(options.length > 0)
+    this.scene.add.apply(this.scene, options);
 
   this.mouse_pos = new Vector2();
   this.mouse_held = false;
@@ -39,9 +41,11 @@ ClickScreen.init = function(renderer, options) {
   this.addHandler(this.target, "mousedown", (function(e){
     var raycaster = new Raycaster();
     raycaster.setFromCamera(this.mouse_pos, this.getCamera());
-    for(var c = 0; c < this.options.length; c++)
-      if(this.options[c].intersected(raycaster))
-        this.options[c].select();
+
+    var options = this.scene.children;
+    for(var c = 0; c < options.length; c++)
+      if("select" in options[c] && options[c].intersected(raycaster))
+        options[c].select();
     this.mouse_held = true;
   }).bind(this));
 
@@ -53,7 +57,13 @@ ClickScreen.init = function(renderer, options) {
     this.mouse_held = false;
   }).bind(this));
 
-  for(var c = 0; c < this.options.length; c++)
-    this.scene.add(this.options[c]);
+};
+
+ClickScreen.addOption = function(option) {
+  this.scene.add(option);
+};
+
+ClickScreen.removeOption = function(idx) {
+  this.scene.remove(option);
 };
 

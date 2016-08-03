@@ -1,6 +1,7 @@
 var Rollup = require('broccoli-rollup');
 var NodeResolve = require('rollup-plugin-node-resolve');
 var CommonJs = require('rollup-plugin-commonjs');
+var Merge = require('broccoli-merge-trees');
 
 var src = "src";
 
@@ -25,5 +26,21 @@ var web = Rollup(src, {
   }
 });
 
-module.exports = web;
+var webworker = Rollup(src, {
+  "inputFiles": ["*.js"],
+  "rollup": {
+    "entry": "simworker.js",
+    "format": "iife",
+    "dest": "simworker.js",
+    "plugins": [
+      NodeResolve({
+        "jsnext": true,
+        "main": true,
+        "skip": []
+      })
+    ]
+  }
+});
+
+module.exports = Merge([web, webworker]);
 
