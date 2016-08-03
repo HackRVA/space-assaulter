@@ -11,7 +11,7 @@ const JSONLoader = THREE.JSONLoader;
 
 export const LoadingScreen = Object.create(NestingScreen);
 
-LoadingScreen.init = function(renderer, load_geom_path) {
+LoadingScreen.init = function(renderer, load_geom) {
   NestingScreen.init.call(this, renderer);
 
   this.completion = 0;
@@ -29,22 +29,14 @@ LoadingScreen.init = function(renderer, load_geom_path) {
 
   this.hack_rva_mesh = null;
   this.mesh = null;
-  var hack_rva_loader = new JSONLoader(this.loader);
-  var material = new MeshLambertMaterial({
-    "color": 0xFFFFFF
-  });
 
   var light = new SpotLight(0xFFFFFF, 1.0, 700);
   light.position.y = 200;
   this.getScene().add(light);
-  this.mesh = null;
+  load_geom.rotation.x = Math.PI / 2;
+  this.mesh = load_geom;
+  this.getScene().add(this.mesh);
 
-  hack_rva_loader.load(load_geom_path, (
-    function(geometry, materials) {
-      this.mesh = new Mesh(geometry, material);
-      this.mesh.rotation.x = Math.PI / 2;
-      this.getScene().add(this.mesh);
-    }).bind(this));
   this.getCamera().position.z = 100;
 };
 
@@ -58,10 +50,12 @@ LoadingScreen.getLoader = function() {
 };
 
 LoadingScreen.draw = function(currentTime) {
-  if(this.mesh) {
-    var rotation = Math.min(this.elapsedTime / 2, this.completion);
-    this.mesh.rotation.x = rotation * Math.PI / 2;
-  }
+  if(this.dt > 0.1)
+    console.log(this.dt);
+  if(this.elapsedTime < 2)
+    this.mesh.rotation.x = (this.elapsedTime / 2) * Math.PI / 2;
+  else
+    this.mesh.rotation.x = Math.PI / 2;
   NestingScreen.draw.call(this, currentTime);
   if(this.done && this.elapsedTime > 2.5) {
     this.descend(0);

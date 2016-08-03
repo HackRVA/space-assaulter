@@ -17,9 +17,11 @@ export function init() {
   var renderer = new WebGLRenderer({
     "canvas": canvas
   });
-  var loadscreen = LoadingScreen.create(renderer, "resources/hackrva.json");
-  var loader = loadscreen.getLoader();
-  var mesh_loader = new JSONLoader(loader);
+  
+  var load_geom = FutureMesh.create("resources/hackrva.json", new JSONLoader());
+  
+  var loadscreen = LoadingScreen.create(renderer, load_geom);
+  var mesh_loader = new JSONLoader(loadscreen.getLoader());
 
   var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
   var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
@@ -56,6 +58,6 @@ export function init() {
   }).bind(graph));
 
   // Start everything up
-  graph.open();
+  load_geom.callback = graph.open.bind(graph);
 }
 
