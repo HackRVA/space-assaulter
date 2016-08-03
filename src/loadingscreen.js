@@ -48,6 +48,11 @@ LoadingScreen.init = function(renderer, load_geom_path) {
   this.getCamera().position.z = 100;
 };
 
+LoadingScreen.open = function(graph) {
+  graph.rebaseStack();
+  NestingScreen.open.call(this, graph);
+}
+
 LoadingScreen.getLoader = function() {
   return this.loader;
 };

@@ -44,19 +44,14 @@ export function init() {
     MapScreen.create(renderer, [])
   ], [[1], [2, 0, 0], [1]])
 
-  console.log(graph);
-
   // Load data
   options[0].addOnSelect((function() {
-    console.log("Descend 0");
     this.descend(0);
   }).bind(graph));
   options[1].addOnSelect((function() {
-    console.log("Descend 1");
     this.descend(1);
   }).bind(graph));
   options[2].addOnSelect((function() {
-    console.log("Descend 2");
     this.descend(2);
   }).bind(graph));
 

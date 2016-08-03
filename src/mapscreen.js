@@ -37,11 +37,12 @@ MapScreen.init = function(renderer, units) {
 };
 
 MapScreen.open = function() {
-  console.log("Map is opening");
+  ClickScreen.open.call(this);
   this.worker = new Worker("build/simworker.js");
 };
 
 MapScreen.close = function() {
+  ClickScreen.close.call(this);
   this.worker.terminate();
 };
 

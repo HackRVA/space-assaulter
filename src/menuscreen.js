@@ -26,7 +26,11 @@ MenuScreen.init = function(renderer, options, aesthetic_meshes) {
 };
 
 MenuScreen.open = function(graph) {
-  ClickScreen.open.call(this, graph);
   graph.rebaseStack();
+  ClickScreen.open.call(this, graph);
 };
+
+MenuScreen.draw = function(currentTime) {
+  ClickScreen.draw.call(this, currentTime);
+}
 
