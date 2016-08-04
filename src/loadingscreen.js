@@ -43,7 +43,7 @@ LoadingScreen.init = function(renderer, load_geom) {
 LoadingScreen.open = function(graph) {
   graph.rebaseStack();
   NestingScreen.open.call(this, graph);
-}
+};
 
 LoadingScreen.getLoader = function() {
   return this.loader;

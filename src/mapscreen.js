@@ -1,4 +1,32 @@
 import { ClickScreen } from './clickscreen.js';
+import { Base } from 'canvas-screens';
+import THREE from 'three';
+
+const LineSegments = THREE.LineSegments;
+const Geometry = THREE.Geometry;
+const Vector3 = THREE.Vector3;
+const LineBasicMaterial = THREE.LineBasicMaterial;
+
+export const Grid = Object.create(LineSegments.prototype);
+
+Grid.create = Base.create;
+
+Grid.init = function(spacing, w, h) {
+  var geom = new Geometry();
+  var i;
+  for(i = 0; i < w + 1; i++) {
+    geom.vertices.push(
+      new Vector3(spacing * i, 0, 0),
+      new Vector3(spacing * i, spacing * h, 0));
+  }
+  for(i = 0; i < h + 1; i++) {
+    geom.vertices.push(
+      new Vector3(0, spacing * i, 0),
+      new Vector3(spacing * w, spacing * i, 0));
+  }
+  var material = new LineBasicMaterial({ "color": 0xFFFFFF });
+  LineSegments.call(this, geom, material);
+};
 
 export const MapScreen = Object.create(ClickScreen);
 
@@ -33,6 +61,9 @@ MapScreen.init = function(renderer, units) {
   this.addHandler(this.target, "keyup", (function(e) {
     var cx = e.key;
   }).bind(this));
+
+  this.scene.add(Grid.create(1, 20, 20));
+  this.getCamera().position.z = 500;
 
 };
 

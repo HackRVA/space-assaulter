@@ -44,7 +44,7 @@ export function init() {
     loadscreen,
     MenuScreen.create(renderer, options, []),
     MapScreen.create(renderer, [])
-  ], [[1], [2, 0, 0], [1]])
+  ], [[1], [2, 0, 0], [1]]);
 
   // Load data
   options[0].addOnSelect((function() {

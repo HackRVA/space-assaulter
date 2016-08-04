@@ -32,5 +32,5 @@ MenuScreen.open = function(graph) {
 
 MenuScreen.draw = function(currentTime) {
   ClickScreen.draw.call(this, currentTime);
-}
+};
 
