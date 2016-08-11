@@ -46,6 +46,7 @@
   "scripts": {
     "clean": "rm -rf build",
     "build": "node_modules/.bin/broccoli build build",
+    "build-resources": "blender --background --python export_json.py",
     "prepublish": "npm run clean; npm run build",
     "lint": "node_modules/.bin/jshint src",
     "lint-tests": "node_modules/.bin/jshint test",
