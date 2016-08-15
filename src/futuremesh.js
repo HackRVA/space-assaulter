@@ -12,22 +12,34 @@ export const FutureMesh = Object.create(Mesh.prototype);
 FutureMesh.create = Base.create;
 
 FutureMesh.init = function(url, loader, callback) {
+  this.url = url;
+  this.loader = loader;
+  this.done = false;
   this.callback = callback;
   Mesh.call(this);
   this.userData = {
     "ready": false
   };
-  loader.load(url, (function(geometry, materials) {
+  this.loader.load(url, (function(geometry, materials) {
+    this.done = true;
     this.geometry = geometry;
-    if(materials === undefined)
+    if(materials === undefined || materials.length > 0)
       this.material = new MeshLambertMaterial({"color": 0xFFFFFF});
-    else
+    else {
       this.material = materials[0];
+    }
     this.userData.ready = true;
     if(this.callback)
       this.callback();
   }).bind(this));
 };
+
+FutureMesh.clone = function(recursive) {
+  // Don't duplicate the callback too
+  return (this.done)? 
+    Mesh.clone.call(this, recursive) : 
+    FutureMesh.create(this.url, this.loader, function() {});
+}
 
 FutureMesh.isReady = function() {
   return this.userData.ready;

@@ -7,9 +7,11 @@ import { MenuScreen } from './menuscreen.js';
 import { MapScreen } from './mapscreen.js';
 import { Selectable } from './selectable.js';
 import { FutureMesh } from './futuremesh.js';
+import { Unit } from './unit.js';
 import THREE from 'three';
 const WebGLRenderer = THREE.WebGLRenderer;
 const JSONLoader = THREE.JSONLoader;
+const TextureLoader = THREE.TextureLoader;
 const Mesh = THREE.Mesh;
 
 export function init() {
@@ -28,9 +30,9 @@ export function init() {
   var tank = FutureMesh.create("resources/tank.json", mesh_loader);
 
   var options = [
-    Selectable.create(serpent),
-    Selectable.create(space_station),
-    Selectable.create(tank)];
+    Selectable.create(serpent.clone()),
+    Selectable.create(space_station.clone()),
+    Selectable.create(tank.clone())];
 
   options[0].position.z = -1000;
   options[0].position.x = -20;
@@ -39,11 +41,28 @@ export function init() {
   options[2].position.z = -1000;
   options[2].position.x = 20;
 
+  var playscreen = MapScreen.create(renderer, [])
+
+  var serpent_unit = Unit.create(serpent.clone());
+  serpent_unit.position.x = -20;
+  serpent_unit.rotation.x = Math.PI / 2;
+
+  var space_station_unit = Unit.create(space_station.clone());
+  space_station_unit.rotation.x = Math.PI / 2;
+
+  var tank_unit = Unit.create(tank.clone());
+  tank_unit.rotation.x = Math.PI / 2;
+  tank_unit.position.x = 20;
+
+  playscreen.addUnit(serpent_unit);
+  playscreen.addUnit(space_station_unit);
+  playscreen.addUnit(tank_unit);
+
   // Load all the desired 
   var graph = ScreenGraph.create([
     loadscreen,
     MenuScreen.create(renderer, options, []),
-    MapScreen.create(renderer, [])
+    playscreen
   ], [[1], [2, 0, 0], [1]]);
 
   // Load data

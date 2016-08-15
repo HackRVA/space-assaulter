@@ -31,30 +31,45 @@ ClickScreen.init = function(renderer, options) {
   if(options.length > 0)
     this.scene.add.apply(this.scene, options);
 
-  this.mouse_pos = new Vector2();
-  this.mouse_held = false;
+  this.mousePos = new Vector2();
+  this.mouseHeld = [false, false, false, false, false];
+
+  this.mouseDownPos= [
+    null,
+    null,
+    null,
+    null,
+    null];
 
   this.addHandler(this.target, "mousemove", (function(e){
-    this.mouse_pos = getMousePosition(e, this.target);
+    this.mousePos = getMousePosition(e, this.target);
   }).bind(this));
 
   this.addHandler(this.target, "mousedown", (function(e){
+    this.mousePos = getMousePosition(e, this.target);
     var raycaster = new Raycaster();
-    raycaster.setFromCamera(this.mouse_pos, this.getCamera());
+    raycaster.setFromCamera(this.mousePos, this.getCamera());
 
     var options = this.scene.children;
     for(var c = 0; c < options.length; c++)
       if("select" in options[c] && options[c].intersected(raycaster))
         options[c].select();
-    this.mouse_held = true;
+
+    if(!this.mouseHeld[e.button])
+      this.mouseDownPos[e.button] = this.mousePos;
+
+    this.mouseHeld[e.button] = true;
   }).bind(this));
 
   this.addHandler(this.target, "mouseout", (function(e){
-    this.mouse_held = false;
+    this.mouseDownPos = [
+      null, null, null, null, null];
+    this.mouseHeld = [false, false, false, false, false];
   }).bind(this));
 
   this.addHandler(this.target, "mouseup", (function(e){
-    this.mouse_held = false;
+    this.mouseHeld[e.button] = false;
+    this.mouseDownPos[e.button] = null;
   }).bind(this));
 
 };
