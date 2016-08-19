@@ -41,22 +41,28 @@ ClickScreen.init = function(renderer, options) {
     null,
     null];
 
+  this.addHandler(this.target, "contextmenu", (function(e){
+    e.preventDefault();
+  }).bind(this));
+
   this.addHandler(this.target, "mousemove", (function(e){
     this.mousePos = getMousePosition(e, this.target);
   }).bind(this));
 
   this.addHandler(this.target, "mousedown", (function(e){
+    e.preventDefault();
     this.mousePos = getMousePosition(e, this.target);
-    var raycaster = new Raycaster();
-    raycaster.setFromCamera(this.mousePos, this.getCamera());
 
-    var options = this.scene.children;
-    for(var c = 0; c < options.length; c++)
-      if("select" in options[c] && options[c].intersected(raycaster))
-        options[c].select();
-
-    if(!this.mouseHeld[e.button])
+    if(!this.mouseHeld[e.button]) {
       this.mouseDownPos[e.button] = this.mousePos;
+      var raycaster = new Raycaster();
+      raycaster.setFromCamera(this.mousePos, this.getCamera());
+      var options = this.scene.children;
+      this.scene.traverse((function(e, raycaster, child) {
+        if("cast" in child)
+          child.cast(e, raycaster);
+      }).bind(this, e, raycaster));
+    }
 
     this.mouseHeld[e.button] = true;
   }).bind(this));

@@ -11,6 +11,8 @@ const Object3D = THREE.Object3D;
 const AmbientLight = THREE.AmbientLight;
 const DirectionalLight = THREE.DirectionalLight;
 const SpotLight = THREE.SpotLight;
+const PlaneGeometry = THREE.PlaneGeometry;
+const Mesh = THREE.Mesh;
 
 export const Grid = Object.create(LineSegments.prototype);
 
@@ -19,6 +21,7 @@ Grid.create = Base.create;
 Grid.init = function(spacing, w, h) {
   var geom = new Geometry();
   var i;
+  
   for(i = 0; i < w + 1; i++)
     geom.vertices.push(
       new Vector3(spacing * i, 0, 0),
@@ -29,7 +32,15 @@ Grid.init = function(spacing, w, h) {
       new Vector3(spacing * w, spacing * i, 0));
   var material = new LineBasicMaterial({ "color": 0xFFFFFF });
   LineSegments.call(this, geom, material);
+
+  // Use this invisible plane for raycasting
+  this.cast_plane = new Mesh(new PlaneGeometry(w * spacing, h * spacing));
+  this.cast_plane.position.x = w * spacing / 2;
+  this.cast_plane.position.y = h * spacing / 2;
+  this.cast_plane.material.visible = false;
+  this.add(this.cast_plane);
 };
+
 
 export const MapScreen = Object.create(ClickScreen);
 
@@ -49,13 +60,6 @@ MapScreen.init = function(renderer, units) {
   this.keyState.Control = false;
   this.keyState.Shift = false;
   this.keyState.Alt = false;
-
-  this.mouseState = [
-    false, 
-    false, 
-    false, 
-    false, 
-    false];
 
   this.keyPressEvent = {};
   this.keyGroups = [];
@@ -92,10 +96,25 @@ MapScreen.init = function(renderer, units) {
   var spacing = 20;
   var width = 10;
   var height = 10;
-  var grid = Grid.create(spacing, width, height);
-  grid.position.x = -spacing * width / 2;
-  grid.position.y = -spacing * height / 2;
-  this.table.add(grid);
+  this.grid = Grid.create(spacing, width, height);
+
+  this.grid.cast = (function(e, ray) {
+    if(e.button != 2)
+      return;
+    var intersections = ray.intersectObject(this.grid.cast_plane);
+    if(intersections.length >= 1) {
+      var goal = intersections[0].point;
+      for(var c = 0; c < this.scene.children.length; c++) {
+        var child = this.scene.children[c];
+        if("setGoal" in child && child.isSelected())
+          child.setGoal(goal);
+      }
+    }
+  }).bind(this);
+
+  this.grid.position.x = -spacing * width / 2;
+  this.grid.position.y = -spacing * height / 2;
+  this.table.add(this.grid);
 
   this.getCamera().position.z = 500;
   this.getCamera().add(new SpotLight(0xFFFFFF));
@@ -140,23 +159,28 @@ MapScreen.draw = function(currentTime) {
   // Pull information from the web worker
   if(this.mouseHeld[0]) {
     var diff = (new Vector2()).subVectors(this.mousePos, this.mouseDownPos[0]);
-    // this.table.rotateX(diff.x * this.dt);
-    // this.table.rotateY(diff.y * this.dt);
-    this.z_gimbal.rotateZ(diff.x * this.dt);
-    this.x_gimbal.rotateX(diff.y * this.dt);
+    if(this.keyState.Control) {
+      this.table.rotateX(diff.y * this.dt);
+      this.table.rotateY(diff.x * this.dt);
+    } else {
+      this.z_gimbal.rotateZ(diff.x * this.dt);
+      this.x_gimbal.rotateX(diff.y * this.dt);
+    }
   }
 
-  // Use
-
   // Check ongoing actions
-  if(this.keyState.Alt) {
-    // this.table.rotateX(this.dt * (this.keyState.d - this.keyState.a));
-    // this.table.rotateY(this.dt * (this.keyState.w - this.keyState.s));
-    // this.table.rotateZ(this.dt * (this.keyState.q - this.keyState.e));
+  if(this.keyState.Control) {
+    this.table.rotateX(this.dt * (this.keyState.d - this.keyState.a));
+    this.table.rotateY(this.dt * (this.keyState.w - this.keyState.s));
+    this.table.rotateZ(this.dt * (this.keyState.q - this.keyState.e));
   } else {
     this.z_gimbal.rotateZ(this.dt * (this.keyState.d - this.keyState.a));
     this.x_gimbal.rotateX(this.dt * (this.keyState.w - this.keyState.s));
     this.getCamera().translateZ(this.dt * 10 * (this.keyState.q - this.keyState.e));
   }
+  this.scene.traverse((function(child) {
+    if("update" in child)
+      child.update(this.dt);
+  }).bind(this));
 };
 

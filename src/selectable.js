@@ -5,6 +5,7 @@ Selectable.init = function(mesh, bbox) {
   Entity.init.call(this, mesh, bbox);
   this.select_cbs = [];
   this.deselect_cbs = [];
+  this.selected = false;
 };
 
 Selectable.addOnSelect = function(cb) {
@@ -36,14 +37,32 @@ Selectable.removeOnDeselect = function(cb_idx) {
 };
 
 Selectable.select = function() {
-  for(var c = 0; c < this.select_cbs.length; c++)
-    if(this.select_cbs[c])
-      this.select_cbs[c]();
+  if(!this.selected) {
+    this.selected = true;
+    for(var c = 0; c < this.select_cbs.length; c++)
+      if(this.select_cbs[c])
+        this.select_cbs[c]();
+  }
 };
 
 Selectable.deselect = function() {
-  for(var c = 0; c < this.deselect_cbs.length; c++)
-    if(this.deselect_cbs[c])
-      this.deselect_cbs[c]();
+  if(this.selected) {
+    this.selected = false;
+    for(var c = 0; c < this.deselect_cbs.length; c++)
+      if(this.deselect_cbs[c])
+        this.deselect_cbs[c]();
+  }
+};
+
+Selectable.cast = function(e, ray) {
+  if(e.button == 0)
+    if(ray.intersectObject(this.bbox).length > 0)
+      this.select();
+    else
+      this.deselect();
+}
+
+Selectable.isSelected = function() {
+  return this.selected;
 };
 
