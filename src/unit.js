@@ -41,8 +41,13 @@ Unit.setGoal = function(pos) {
 Unit.update = function(dt) {
   // Move toward the point
   if(this.goal) {
+    var distance = this.getWorldPosition().distanceTo(this.goal);
+    if(distance < 0.1)
+      return;
     this.lookAt(this.goal);
-    this.translateOnAxis(new Vector3(0, 0, 1), this.speed * dt);
+    this.translateOnAxis(
+      new Vector3(0, 0, 1),
+      Math.min(this.speed * dt, distance));
   }
 }
 
