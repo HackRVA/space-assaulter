@@ -7,6 +7,7 @@ import { MenuScreen } from './menuscreen.js';
 import { MapScreen } from './mapscreen.js';
 import { Selectable } from './selectable.js';
 import { FutureMesh } from './futuremesh.js';
+import { FutureSprite } from './futuresprite.js';
 import { Unit } from './unit.js';
 import THREE from 'three';
 const WebGLRenderer = THREE.WebGLRenderer;
@@ -23,16 +24,21 @@ export function init() {
   var load_geom = FutureMesh.create("resources/hackrva.json", new JSONLoader());
   
   var loadscreen = LoadingScreen.create(renderer, load_geom);
-  var mesh_loader = new JSONLoader(loadscreen.getLoader());
+  var loader = loadscreen.getLoader();
+  var mesh_loader = new JSONLoader(loader);
+  var tex_loader = new TextureLoader(loader);
 
   var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
   var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
   var tank = FutureMesh.create("resources/tank.json", mesh_loader);
 
+  var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
+  var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
+
   var options = [
-    Selectable.create(serpent.clone()),
+    Selectable.create(start_sprite.clone()),
     Selectable.create(space_station.clone()),
-    Selectable.create(tank.clone())];
+    Selectable.create(quit_sprite.clone())];
 
   options[0].position.z = -1000;
   options[0].position.x = -20;
