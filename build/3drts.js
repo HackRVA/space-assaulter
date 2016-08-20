@@ -42016,7 +42016,7 @@
 	LoadingScreen.open = function(graph) {
 	  graph.rebaseStack();
 	  NestingScreen.open.call(this, graph);
-	}
+	};
 
 	LoadingScreen.getLoader = function() {
 	  return this.loader;
@@ -42066,30 +42066,51 @@
 	  if(options.length > 0)
 	    this.scene.add.apply(this.scene, options);
 
-	  this.mouse_pos = new Vector2();
-	  this.mouse_held = false;
+	  this.mousePos = new Vector2();
+	  this.mouseHeld = [false, false, false, false, false];
+
+	  this.mouseDownPos= [
+	    null,
+	    null,
+	    null,
+	    null,
+	    null];
+
+	  this.addHandler(this.target, "contextmenu", (function(e){
+	    e.preventDefault();
+	  }).bind(this));
 
 	  this.addHandler(this.target, "mousemove", (function(e){
-	    this.mouse_pos = getMousePosition$1(e, this.target);
+	    this.mousePos = getMousePosition$1(e, this.target);
 	  }).bind(this));
 
 	  this.addHandler(this.target, "mousedown", (function(e){
-	    var raycaster = new Raycaster();
-	    raycaster.setFromCamera(this.mouse_pos, this.getCamera());
+	    e.preventDefault();
+	    this.mousePos = getMousePosition$1(e, this.target);
 
-	    var options = this.scene.children;
-	    for(var c = 0; c < options.length; c++)
-	      if("select" in options[c] && options[c].intersected(raycaster))
-	        options[c].select();
-	    this.mouse_held = true;
+	    if(!this.mouseHeld[e.button]) {
+	      this.mouseDownPos[e.button] = this.mousePos;
+	      var raycaster = new Raycaster();
+	      raycaster.setFromCamera(this.mousePos, this.getCamera());
+	      var options = this.scene.children;
+	      this.scene.traverse((function(e, raycaster, child) {
+	        if("cast" in child)
+	          child.cast(e, raycaster);
+	      }).bind(this, e, raycaster));
+	    }
+
+	    this.mouseHeld[e.button] = true;
 	  }).bind(this));
 
 	  this.addHandler(this.target, "mouseout", (function(e){
-	    this.mouse_held = false;
+	    this.mouseDownPos = [
+	      null, null, null, null, null];
+	    this.mouseHeld = [false, false, false, false, false];
 	  }).bind(this));
 
 	  this.addHandler(this.target, "mouseup", (function(e){
-	    this.mouse_held = false;
+	    this.mouseHeld[e.button] = false;
+	    this.mouseDownPos[e.button] = null;
 	  }).bind(this));
 
 	};
@@ -42132,7 +42153,47 @@
 
 	MenuScreen$1.draw = function(currentTime) {
 	  ClickScreen.draw.call(this, currentTime);
-	}
+	};
+
+	const LineSegments = THREE.LineSegments;
+	const Geometry = THREE.Geometry;
+	const Vector2$1 = THREE.Vector2;
+	const Vector3 = THREE.Vector3;
+	const LineBasicMaterial = THREE.LineBasicMaterial;
+	const Object3D = THREE.Object3D;
+	const AmbientLight$1 = THREE.AmbientLight;
+	const DirectionalLight$1 = THREE.DirectionalLight;
+	const SpotLight$1 = THREE.SpotLight;
+	const PlaneGeometry = THREE.PlaneGeometry;
+	const Mesh$2 = THREE.Mesh;
+
+	const Grid = Object.create(LineSegments.prototype);
+
+	Grid.create = Base.create;
+
+	Grid.init = function(spacing, w, h) {
+	  var geom = new Geometry();
+	  var i;
+	  
+	  for(i = 0; i < w + 1; i++)
+	    geom.vertices.push(
+	      new Vector3(spacing * i, 0, 0),
+	      new Vector3(spacing * i, spacing * h, 0));
+	  for(i = 0; i < h + 1; i++)
+	    geom.vertices.push(
+	      new Vector3(0, spacing * i, 0),
+	      new Vector3(spacing * w, spacing * i, 0));
+	  var material = new LineBasicMaterial({ "color": 0xFFFFFF });
+	  LineSegments.call(this, geom, material);
+
+	  // Use this invisible plane for raycasting
+	  this.cast_plane = new Mesh$2(new PlaneGeometry(w * spacing, h * spacing));
+	  this.cast_plane.position.x = w * spacing / 2;
+	  this.cast_plane.position.y = h * spacing / 2;
+	  this.cast_plane.material.visible = false;
+	  this.add(this.cast_plane);
+	};
+
 
 	const MapScreen = Object.create(ClickScreen);
 
@@ -42141,37 +42202,93 @@
 	MapScreen.init = function(renderer, units) {
 	  ClickScreen.init.call(this, renderer, units);
 	  this.worker = null;
-	  this.ctrlAltActions = {};
-	  this.ctrlActions = {};
-	  this.altActions = {};
-	  this.keyActions = {};
+	  // need key-state system
+	  this.keyState = {};
+	  this.keyState.a = false;
+	  this.keyState.s = false;
+	  this.keyState.d = false;
+	  this.keyState.w = false;
+	  this.keyState.q = false;
+	  this.keyState.e = false;
+	  this.keyState.Control = false;
+	  this.keyState.Shift = false;
+	  this.keyState.Alt = false;
 
-	  this.addHandler(this.target, "keydown", (function(e) {
+	  this.keyPressEvent = {};
+	  this.keyGroups = [];
+
+	  this.addHandler(window, "keydown", (function(e) {
 	    e.preventDefault();
-	    var cx = e.key;
-	    // TODO don't hardcode the control scheme
-	    if(e.altKey && e.ctrlKey && e.key in this.ctrlAltKeyActions)
-	      // with ctrl and alt key
-	      this.ctrlAltKeyActions[e.key](e);
-	    else if(e.ctrlKey && e.key in this.ctrlKeyActions)
-	      // with ctrl key
-	      this.ctrlKeyActions[e.key](e);
-	    else if(e.altKey && e.key in this.altKeyActions)
-	      // with alt key
-	      this.altKeyActions[e.key](e);
-	    else
-	      // no key modifiers
-	      this.keyActions[e.key](e);
+	    this.keyState[e.key] = true;
 	  }).bind(this));
 
-	  this.addHandler(this.target, "keyup", (function(e) {
-	    var cx = e.key;
+	  this.addHandler(window, "keypress", (function(e) {
+	    e.preventDefault();
+	    if(e.key in this.keyPressEvent) {
+	      this.keyPressEvent[e.key](e);
+	    }
 	  }).bind(this));
 
+	  this.addHandler(window, "keyup", (function(e) {
+	    e.preventDefault();
+	    this.keyState[e.key] = false;
+	  }).bind(this));
+
+	  // The table is the focus of the view, it's a plane that is used to simplify
+	  // working in 3D, so that everything feels more familiar to 2D RTS fans
+
+	  this.table = new Object3D();
+	  // Attach the camera to gimbals instead of free flying
+	  this.scene.remove(this.getCamera());
+
+	  this.z_gimbal = new Object3D();
+	  this.x_gimbal = new Object3D();
+	  this.z_gimbal.add(this.x_gimbal);
+	  this.table.add(this.z_gimbal);
+	  this.x_gimbal.add(this.getCamera());
+	  var spacing = 20;
+	  var width = 10;
+	  var height = 10;
+	  this.grid = Grid.create(spacing, width, height);
+
+	  this.grid.cast = (function(e, ray) {
+	    if(e.button != 2)
+	      return;
+	    var intersections = ray.intersectObject(this.grid.cast_plane);
+	    if(intersections.length >= 1) {
+	      var goal = intersections[0].point;
+	      for(var c = 0; c < this.scene.children.length; c++) {
+	        var child = this.scene.children[c];
+	        if("setGoal" in child && child.isSelected())
+	          child.setGoal(goal);
+	      }
+	    }
+	  }).bind(this);
+
+	  this.grid.position.x = -spacing * width / 2;
+	  this.grid.position.y = -spacing * height / 2;
+	  this.table.add(this.grid);
+
+	  this.getCamera().position.z = 500;
+	  this.getCamera().add(new SpotLight$1(0xFFFFFF));
+	  this.scene.add(new AmbientLight$1(0xFFFFFF, 0.1));
+	  this.scene.add(new DirectionalLight$1(0xFFFFFF, 0.2));
+
+	  this.scene.add(this.table);
+
+	  this.addHandler(window, "wheel", (function(e) {
+	    e.preventDefault();
+	    if(e.ctrlKey) {
+	      // Move the table up and down
+	      this.table.translateZ(e.deltaY * 0.5);
+	    } else {
+	      this.getCamera().translateZ(e.deltaY * 5);
+	    }
+	  }).bind(this));
 	};
 
-	MapScreen.open = function() {
-	  ClickScreen.open.call(this);
+	MapScreen.open = function(graph) {
+	  ClickScreen.open.call(this, graph);
 	  this.worker = new Worker("build/simworker.js");
 	};
 
@@ -42193,17 +42310,42 @@
 	  ClickScreen.draw.call(this, currentTime);
 	  // Send information to the web worker
 	  // Pull information from the web worker
+	  if(this.mouseHeld[0]) {
+	    var diff = (new Vector2$1()).subVectors(this.mousePos, this.mouseDownPos[0]);
+	    if(this.keyState.Control) {
+	      this.table.rotateX(diff.y * this.dt);
+	      this.table.rotateY(diff.x * this.dt);
+	    } else {
+	      this.z_gimbal.rotateZ(diff.x * this.dt);
+	      this.x_gimbal.rotateX(diff.y * this.dt);
+	    }
+	  }
+
+	  // Check ongoing actions
+	  if(this.keyState.Control) {
+	    this.table.rotateX(this.dt * (this.keyState.d - this.keyState.a));
+	    this.table.rotateY(this.dt * (this.keyState.w - this.keyState.s));
+	    this.table.rotateZ(this.dt * (this.keyState.q - this.keyState.e));
+	  } else {
+	    this.z_gimbal.rotateZ(this.dt * (this.keyState.d - this.keyState.a));
+	    this.x_gimbal.rotateX(this.dt * (this.keyState.w - this.keyState.s));
+	    this.getCamera().translateZ(this.dt * 10 * (this.keyState.q - this.keyState.e));
+	  }
+	  this.scene.traverse((function(child) {
+	    if("update" in child)
+	      child.update(this.dt);
+	  }).bind(this));
 	};
 
-	const Object3D = THREE.Object3D;
+	const Object3D$1 = THREE.Object3D;
 
 	// Could be a problem depending on how Object3D is defined
-	const Entity$1 = Object.create(Object3D.prototype);
+	const Entity$1 = Object.create(Object3D$1.prototype);
 
 	Entity$1.create = Base.create;
 
 	Entity$1.init = function(mesh, bbox) {
-	  Object3D.call(this);
+	  Object3D$1.call(this);
 	  this.mesh = mesh;
 	  this.bbox = (bbox === undefined)? mesh : bbox;
 	  this.add(this.mesh);
@@ -42231,6 +42373,7 @@
 	  Entity$1.init.call(this, mesh, bbox);
 	  this.select_cbs = [];
 	  this.deselect_cbs = [];
+	  this.selected = false;
 	};
 
 	Selectable.addOnSelect = function(cb) {
@@ -42262,51 +42405,160 @@
 	};
 
 	Selectable.select = function() {
-	  for(var c = 0; c < this.select_cbs.length; c++)
-	    if(this.select_cbs[c])
-	      this.select_cbs[c]();
+	  if(!this.selected) {
+	    this.selected = true;
+	    for(var c = 0; c < this.select_cbs.length; c++)
+	      if(this.select_cbs[c])
+	        this.select_cbs[c]();
+	  }
 	};
 
 	Selectable.deselect = function() {
-	  for(var c = 0; c < this.deselect_cbs.length; c++)
-	    if(this.deselect_cbs[c])
-	      this.deselect_cbs[c]();
+	  if(this.selected) {
+	    this.selected = false;
+	    for(var c = 0; c < this.deselect_cbs.length; c++)
+	      if(this.deselect_cbs[c])
+	        this.deselect_cbs[c]();
+	  }
 	};
 
-	const Mesh$2 = THREE.Mesh;
-	const Object3D$1 = THREE.Object3D;
+	Selectable.cast = function(e, ray) {
+	  if(e.button == 0)
+	    if(ray.intersectObject(this.bbox).length > 0)
+	      this.select();
+	    else
+	      this.deselect();
+	}
+
+	Selectable.isSelected = function() {
+	  return this.selected;
+	};
+
+	const Mesh$3 = THREE.Mesh;
 	const MeshLambertMaterial$1 = THREE.MeshLambertMaterial;
 	// A trick for making Meshes asynchronously
 	// Overall, so long as we check that the loader finishes first, this makes
 	// things easier.
-	const FutureMesh = Object.create(Mesh$2.prototype);
+	const FutureMesh = Object.create(Mesh$3.prototype);
 
 	FutureMesh.create = Base.create;
 
 	FutureMesh.init = function(url, loader, callback) {
+	  this.url = url;
+	  this.loader = loader;
 	  this.callback = callback;
-	  Mesh$2.call(this);
+	  Mesh$3.call(this);
 	  this.userData = {
 	    "ready": false
 	  };
-	  loader.load(url, (function(geometry, materials) {
+	  this.loader.load(url, (function(geometry, materials) {
 	    this.geometry = geometry;
-	    if(materials === undefined)
+	    if(materials === undefined || materials.length > 0)
 	      this.material = new MeshLambertMaterial$1({"color": 0xFFFFFF});
-	    else
+	    else {
 	      this.material = materials[0];
+	    }
 	    this.userData.ready = true;
 	    if(this.callback)
 	      this.callback();
 	  }).bind(this));
 	};
 
+	FutureMesh.clone = function(recursive) {
+	  // Don't duplicate the callback too
+	  return (this.userData.ready)? 
+	    Mesh$3.prototype.clone.call(this, recursive) : 
+	    FutureMesh.create(this.url, this.loader, function() {});
+	}
+
 	FutureMesh.isReady = function() {
 	  return this.userData.ready;
 	};
 
+	const Sprite = THREE.Sprite;
+	const Texture = THREE.Texture;
+	const SpriteMaterial = THREE.SpriteMaterial;
+	const FutureSprite = Object.create(Sprite.prototype);
+
+	FutureSprite.create = Base.create;
+
+	FutureSprite.init = function(url, loader, material_params) {
+	  Sprite.call(this);
+	  console.log(loader);
+	  this.loader = loader;
+	  this.done = false;
+	  this.mat_params = (material_params === undefined)? {} : material_params;
+	  this.url = url;
+	  this.loader.load(url, (function(texture) {
+	    this.mat_params["map"] = texture;
+	    this.material = new SpriteMaterial(this.mat_params);
+	    this.done = true;
+	  }).bind(this));
+	}
+
+	FutureSprite.clone = function(recursive) {
+	  return (this.done)?
+	    Sprite.prototype.call(this, recursive) :
+	    FutureSprite.create(this.url, this.loader, this.mat_params);
+	}
+
+	const Sprite$1 = THREE.Sprite;
+	const SpriteMaterial$1 = THREE.SpriteMaterial;
+	const UVMapping = THREE.UVMapping;
+
+	const Vector3$1 = THREE.Vector3;
+
+	const Unit = Object.create(Selectable);
+
+	Unit.init = function(mesh, bbox, life) {
+	  Selectable.init.call(this, mesh, bbox);
+	  this.life = life;
+	  // this.info = UnitInfo.create(this);
+	  // this.add(this.info);
+
+	  // units/second
+	  this.speed = 1;
+
+	  this.addOnSelect((function() {
+	    // Change the color to highlight green a bit
+	    this.mesh.material.color = { "r": 0.6, "g": 1.0, "b": 0.6};
+	    // this.remove(this.info);
+	  }).bind(this));
+	  this.addOnDeselect((function() {
+	    this.mesh.material.color = { "r": 1.0, "g": 1.0, "b": 1.0};
+	  }).bind(this));
+	};
+
+	Unit.damage = function(base_damage) {
+	  this.life -= base_damage;
+	  if(this.life < 0)
+	    this.onDeath();
+	}
+
+	Unit.onDeath = function() {
+	}
+
+	Unit.setGoal = function(pos) {
+	  this.goal = pos;
+	  this.lookAt(this.goal);
+	}
+
+	Unit.update = function(dt) {
+	  // Move toward the point
+	  if(this.goal) {
+	    var distance = this.getWorldPosition().distanceTo(this.goal);
+	    if(distance < 0.1)
+	      return;
+	    this.lookAt(this.goal);
+	    this.translateOnAxis(
+	      new Vector3$1(0, 0, 1),
+	      Math.min(this.speed * dt, distance));
+	  }
+	}
+
 	const WebGLRenderer = THREE.WebGLRenderer;
 	const JSONLoader = THREE.JSONLoader;
+	const TextureLoader = THREE.TextureLoader;
 	const Mesh = THREE.Mesh;
 
 	function init() {
@@ -42318,16 +42570,21 @@
 	  var load_geom = FutureMesh.create("resources/hackrva.json", new JSONLoader());
 	  
 	  var loadscreen = LoadingScreen.create(renderer, load_geom);
-	  var mesh_loader = new JSONLoader(loadscreen.getLoader());
+	  var loader = loadscreen.getLoader();
+	  var mesh_loader = new JSONLoader(loader);
+	  var tex_loader = new TextureLoader(loader);
 
 	  var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
 	  var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
 	  var tank = FutureMesh.create("resources/tank.json", mesh_loader);
 
+	  var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
+	  var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
+
 	  var options = [
-	    Selectable.create(serpent),
-	    Selectable.create(space_station),
-	    Selectable.create(tank)];
+	    Selectable.create(start_sprite.clone()),
+	    Selectable.create(space_station.clone()),
+	    Selectable.create(quit_sprite.clone())];
 
 	  options[0].position.z = -1000;
 	  options[0].position.x = -20;
@@ -42336,12 +42593,29 @@
 	  options[2].position.z = -1000;
 	  options[2].position.x = 20;
 
+	  var playscreen = MapScreen.create(renderer, [])
+
+	  var serpent_unit = Unit.create(serpent.clone());
+	  serpent_unit.position.x = -20;
+	  serpent_unit.rotation.x = Math.PI / 2;
+
+	  var space_station_unit = Unit.create(space_station.clone());
+	  space_station_unit.rotation.x = Math.PI / 2;
+
+	  var tank_unit = Unit.create(tank.clone());
+	  tank_unit.rotation.x = Math.PI / 2;
+	  tank_unit.position.x = 20;
+
+	  playscreen.addUnit(serpent_unit);
+	  playscreen.addUnit(space_station_unit);
+	  playscreen.addUnit(tank_unit);
+
 	  // Load all the desired 
 	  var graph = ScreenGraph.create([
 	    loadscreen,
 	    MenuScreen$1.create(renderer, options, []),
-	    MapScreen.create(renderer, [])
-	  ], [[1], [2, 0, 0], [1]])
+	    playscreen
+	  ], [[1], [2, 0, 0], [1]]);
 
 	  // Load data
 	  options[0].addOnSelect((function() {
