@@ -10,32 +10,33 @@ export const FutureMesh = Object.create(Mesh.prototype);
 
 FutureMesh.create = Base.create;
 
-FutureMesh.init = function(url, loader, callback) {
+FutureMesh.init = function(url, loader, tex_url, tex_loader) {
   this.url = url;
   this.loader = loader;
-  this.callback = callback;
   Mesh.call(this);
   this.userData = {
     "ready": false
   };
-  this.loader.load(url, (function(geometry, materials) {
+  this.loader.load(url, (function(geometry) {
     this.geometry = geometry;
-    if(materials === undefined || materials.length > 0)
-      this.material = new MeshLambertMaterial({"color": 0xFFFFFF});
-    else {
-      this.material = materials[0];
-    }
     this.userData.ready = true;
-    if(this.callback)
-      this.callback();
   }).bind(this));
+  if(tex_url && tex_loader) {
+    this.tex_url = tex_url;
+    this.tex_loader = tex_loader;
+    tex_loader.load(tex_url, (function(texture) {
+      this.texture = texture;
+      this.material = new MeshLambertMaterial({"map": texture});
+    }).bind(this));
+  } else {
+    this.material = new MeshLambertMaterial({"color": 0xFFFFFF});
+  }
 };
 
 FutureMesh.clone = function(recursive) {
-  // Don't duplicate the callback too
   return (this.userData.ready)? 
     Mesh.prototype.clone.call(this, recursive) : 
-    FutureMesh.create(this.url, this.loader, function() {});
+    FutureMesh.create(this.url, this.loader, this.tex_url, this.tex_loader);
 }
 
 FutureMesh.isReady = function() {

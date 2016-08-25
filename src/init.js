@@ -8,12 +8,14 @@ import { MapScreen } from './mapscreen.js';
 import { Selectable } from './selectable.js';
 import { FutureMesh } from './futuremesh.js';
 import { FutureSprite } from './futuresprite.js';
+import { SpriteText } from './spritetext.js';
 import { Unit } from './unit.js';
 import THREE from 'three';
 const WebGLRenderer = THREE.WebGLRenderer;
 const JSONLoader = THREE.JSONLoader;
 const TextureLoader = THREE.TextureLoader;
 const Mesh = THREE.Mesh;
+const Vector3 = THREE.Vector3;
 
 export function init() {
   var canvas = document.getElementById("canvas");
@@ -30,22 +32,30 @@ export function init() {
 
   var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
   var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
-  var tank = FutureMesh.create("resources/tank.json", mesh_loader);
+  var tank = FutureMesh.create("resources/tank.json", mesh_loader, "resources/tank_shuttle.png", tex_loader);
 
   var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
   var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
 
+  var textcanvas = document.createElement("canvas");
+  var ctx = textcanvas.getContext("2d");
+  ctx.save();
+  ctx.fillStyle = "#0000FF";
+  ctx.strokeStyle = "#0000FF";
+  var middle_sprite = SpriteText.create("Middle", ctx, "#FFFFFF", true);
+  ctx.restore();
+
   var options = [
     Selectable.create(start_sprite.clone()),
-    Selectable.create(space_station.clone()),
+    Selectable.create(middle_sprite.clone()),
     Selectable.create(quit_sprite.clone())];
 
-  options[0].position.z = -1000;
-  options[0].position.x = -20;
-  options[1].position.z = -1000;
+  options[0].position.z = -100;
+  options[0].position.x = -2;
+  options[1].position.z = -100;
   options[1].position.x = 0;
-  options[2].position.z = -1000;
-  options[2].position.x = 20;
+  options[2].position.z = -100;
+  options[2].position.x = 2;
 
   var playscreen = MapScreen.create(renderer, [])
 
@@ -83,6 +93,6 @@ export function init() {
   }).bind(graph));
 
   // Start everything up
-  load_geom.callback = graph.open.bind(graph);
+  graph.open();
 }
 
