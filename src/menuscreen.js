@@ -2,8 +2,6 @@ import { ClickScreen } from './clickscreen.js';
 import { Screen } from 'canvas-screens';
 import { GLScreen } from './glscreen.js';
 import THREE from 'three';
-const Scene = THREE.Scene;
-const PerspectiveCamera = THREE.PerspectiveCamera;
 const DirectionalLight = THREE.DirectionalLight;
 const AmbientLight = THREE.AmbientLight;
 
