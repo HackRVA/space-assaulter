@@ -34,9 +34,6 @@ export function init() {
   var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
   var tank = FutureMesh.create("resources/tank.json", mesh_loader, "resources/tank_shuttle.png", tex_loader);
 
-  // var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
-  // var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
-
   var start_sprite = SpriteText.create("Start", "#0000FF", null, "20px Helvetica", true);
   var middle_sprite = SpriteText.create("Middle", "#0000FF", null, "20px Helvetica", true);
   var quit_sprite = SpriteText.create("Quit", "#0000FF", null, "20px Helvetica", true);
