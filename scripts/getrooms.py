@@ -3,34 +3,25 @@
 import sys
 import MySQLdb
 import json
+from wrap import wrap_db, wrap_cgi
+
+def db_ops(cur, sock):
+  cur.execute("""SELECT rooms.id, rooms.name, count(offers.id) 
+    FROM rooms 
+    LEFT JOIN offers 
+      ON rooms.id = offers.id 
+    GROUP BY rooms.id;""")
+  json.dump(
+    [{"id": roomid, "name": name, "count": count} 
+      for (roomid, name, count) in cur],
+    sock)
+
+def get_req(sock):
+  wrap_db(db_ops, sock)
 
 # Read from the rooms table
 def main():
-  try:
-    sock = sys.stdout
-    sock.write("Content-type: application/json\r\n\r\n")
-    # Open the database
-    db = MySQLdb.connect(host = "localhost",
-                         user = "hackrva_games",
-                         db = "hackrva_games",
-                         passwd = "")
-    cur = db.cursor()
-    # Retrieve the rooms
-    cur.execute("""SELECT rooms.id, rooms.name, count(offers.id) 
-      FROM rooms 
-      LEFT JOIN offers 
-        ON rooms.id = offers.id 
-      GROUP BY rooms.id;""")
-    cur.close()
-    db.close()
-    # Provide a JSON array of the rooms
-    json.dump(
-      [{"id": roomid, "name": name, "count": count} 
-        for (roomid, name, count) in cur],
-      sock)
-  except:
-    print("A failure occurred ...")
-    print(sys.exc_info())
+  wrap_cgi({'GET': get_req}, sys.stdout)
 
 main()
 

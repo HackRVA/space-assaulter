@@ -3,39 +3,38 @@
 import sys
 import MySQLdb
 import json
+import cgi
 from os import environ
+from wrap import wrap_db, wrap_cgi
 
-# Create a new room with a set of offers
-def main():
+def db_ops(cur, sockout, sockin):
+  name = ""
+  offers = []
   try:
-    sock = sys.stdout
-    sock.write("Content-type: application/json\r\n\r\n")
-    # Needs to read from POST data
-    roomdata = json.load(sys.stdin)
+    roomdata = json.load(sockin)
     name = roomdata["name"]
     offers = roomdata["offers"]
-    # Open the database
-    db = MySQLdb.connect(host = "localhost",
-                         user = "hackrva_games",
-                         db = "hackrva_games",
-                         passwd = "")
-    cur = db.cursor()
     cur.execute("INSERT INTO rooms (name) VALUES (%s);", (name, ))
     room_id = cur.lastrowid
-    offer_str = """INSERT INTO offers (room_id, contents) 
-      VALUES """ + ", ".join(["(%s, %s)" for i in range(0, num)]) + ";"
     args = []
     for offer in offers:
       args.append(room_id)
       args.append(offer)
-    cur.execute(offer_str, (*args, ))
-    cur.close()
-    db.close()
-    # Send back the inserted room's id
+    offer_str = """INSERT INTO offers (room_id, contents) 
+      VALUES """ + ", ".join(["(%s, %s)" for i in range(0, num)]) + ";"
+    cur.execute(offer_str, args)
     json.dump({
       "id": room_id
-    }, sock)
+    }, sockout)
   except:
-    print("A failure occurred ...")
-    print(sys.exc_info())
+    json.dump({"error": "Failure parsing received data"}, sockout)
+
+def post_req(sockout, sockin):
+  wrap_db(db_ops, sockout, sockin)
+
+# Create a new room with a set of offers
+def main():
+  wrap_cgi({'POST': post_req}, sys.stdout, sys.stdin)
+
+main()
 
