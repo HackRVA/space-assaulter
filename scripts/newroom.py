@@ -8,8 +8,8 @@ from os import environ
 # Create a new room with a set of offers
 def main():
   try:
-    print("Content-type: application/json")
-    print("")
+    sock = sys.stdout
+    sock.write("Content-type: application/json\r\n\r\n")
     # Needs to read from POST data
     roomdata = json.load(sys.stdin)
     name = roomdata["name"]
@@ -31,6 +31,10 @@ def main():
     cur.execute(offer_str, (*args, ))
     cur.close()
     db.close()
+    # Send back the inserted room's id
+    json.dump({
+      "id": room_id
+    }, sock)
   except:
     print("A failure occurred ...")
     print(sys.exc_info())
