@@ -11,10 +11,16 @@ def db_ops(cur, sock):
   roomid = int(form.getvalue("id"))
   cur.execute("""SELECT id, contents
     FROM offers WHERE room_id=%s LIMIT 1;""", (roomid, ))
-  json.dump([{
+  offers = [{
     "id": offerid, 
     "contents": contents}
-      for (offerid, contents) in cur], sock)
+      for (offerid, contents) in cur]
+  if len(offers) >= 1:
+    offer = offers[0]
+    cur.execute("DELETE FROM offers WHERE id=%s;", (offer["id"], ))
+    json.dump(offer, sock)
+  else:
+    json.dump({"error": "No available offers"}, sock)
 
 def get_req(sock):
   wrap_db(db_ops, sock)
