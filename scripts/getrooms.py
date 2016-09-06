@@ -6,10 +6,10 @@ import json
 from wrap import wrap_db, wrap_cgi
 
 def db_ops(cur, sock):
-  cur.execute("""SELECT rooms.id, rooms.name, count(offers.id) 
+  cur.execute("""SELECT rooms.id, rooms.name, COUNT(offers.id) 
     FROM rooms 
     LEFT JOIN offers 
-      ON rooms.id = offers.id 
+      ON rooms.id = offers.room_id 
     GROUP BY rooms.id;""")
   json.dump(
     [{"id": roomid, "name": name, "count": count} 
