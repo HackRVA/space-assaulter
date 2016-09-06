@@ -3,7 +3,6 @@
 import sys
 import MySQLdb
 import json
-import cgi
 from os import environ
 from wrap import wrap_db, wrap_cgi
 
@@ -24,9 +23,11 @@ def db_ops(cur, sockout, sockin):
     args.append(offer)
   offer_str = "INSERT INTO offers (room_id, contents) VALUES " + \
     ", ".join(["(%s, %s)" for i in range(0, len(offers))]) + ";"
-  cur.execute(offer_str, args)
+  num_offers = cur.execute(offer_str, args)
   json.dump({
-    "id": room_id
+    "id": room_id,
+    "num_offers": num_offers,
+    "last_offer": cur.lastrowid
   }, sockout)
 
 def post_req(sockout, sockin):
