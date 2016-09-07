@@ -8,11 +8,12 @@ from wrap import wrap_db, wrap_cgi
 def db_ops(cur, sock, sockin):
   answerdata = json.load(sockin)
   cur.execute(
-    "INSERT INTO answers (room_id, offer_id, contents) VALUES (%s, %s, %s);", 
+    "INSERT INTO answers (room_id, offer_id, sdp_type, sdp) VALUES (%s, %s, %s, %s);", 
     ( answerdata['room'], 
-      answerdata['offer'], 
-      answerdata['contents']))
-  json.dump({"success": "Answer stored successfully"}, sock)
+      answerdata['offer'],
+      answerdata['answer']['type'], 
+      answerdata['answer']['sdp']))
+  json.dump({"id": cur.lastrowid}, sock)
 
 def post_req(sock, sockin):
   wrap_db(db_ops, sock, sockin)

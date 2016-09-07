@@ -10,12 +10,15 @@ def db_ops(cur, sock):
   form = cgi.FieldStorage()
   roomid = long(form.getvalue("id"))
   cur.execute(
-    "SELECT id, contents FROM offers WHERE room_id=%s AND used=FALSE LIMIT 1;", 
+    "SELECT id, sdp_type, sdp FROM offers WHERE room_id=%s AND used=FALSE LIMIT 1;", 
     (roomid, ))
   offers = [{
     "id": offerid, 
-    "contents": contents}
-      for (offerid, contents) in cur]
+    "offer": {
+      "type": sdp_type,
+      "sdp": sdp
+    }
+  } for (offerid, sdp_type, sdp) in cur]
   if len(offers) >= 1:
     offer = offers[0]
     cur.execute("UPDATE offers SET used=TRUE WHERE id=%s;", (offer["id"], ))
