@@ -9,10 +9,9 @@ from wrap import wrap_db, wrap_cgi
 
 def db_ops(cur, sockout, sockin):
   name = ""
-  offers = []
   try:
     form = cgi.FieldStorage()
-    name = form["name"]
+    name = form.getvalue("name")
   except:
     json.dump({"error": "Failure parsing received data"}, sockout)
   cur.execute("INSERT INTO rooms (name) VALUES (%s);", (name, ))

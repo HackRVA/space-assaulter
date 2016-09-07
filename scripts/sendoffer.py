@@ -14,4 +14,11 @@ def db_ops(cur, sock, sockin):
       offerdata['offer']['sdp']))
   json.dump({ "id": cur.lastrowid }, sock)
 
+def post_req(sock, sockin):
+  wrap_db(db_ops, sock, sockin)
+
+def main():
+  wrap_cgi({'POST': post_req }, sys.stdout, sys.stdin)
+
+main()
 
