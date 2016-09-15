@@ -42123,8 +42123,6 @@
 	  this.scene.remove(option);
 	};
 
-	const Scene$1 = THREE.Scene;
-	const PerspectiveCamera$1 = THREE.PerspectiveCamera;
 	const DirectionalLight = THREE.DirectionalLight;
 	const AmbientLight = THREE.AmbientLight;
 
@@ -42158,7 +42156,7 @@
 	const LineSegments = THREE.LineSegments;
 	const Geometry = THREE.Geometry;
 	const Vector2$1 = THREE.Vector2;
-	const Vector3 = THREE.Vector3;
+	const Vector3$1 = THREE.Vector3;
 	const LineBasicMaterial = THREE.LineBasicMaterial;
 	const Object3D = THREE.Object3D;
 	const AmbientLight$1 = THREE.AmbientLight;
@@ -42177,12 +42175,12 @@
 	  
 	  for(i = 0; i < w + 1; i++)
 	    geom.vertices.push(
-	      new Vector3(spacing * i, 0, 0),
-	      new Vector3(spacing * i, spacing * h, 0));
+	      new Vector3$1(spacing * i, 0, 0),
+	      new Vector3$1(spacing * i, spacing * h, 0));
 	  for(i = 0; i < h + 1; i++)
 	    geom.vertices.push(
-	      new Vector3(0, spacing * i, 0),
-	      new Vector3(spacing * w, spacing * i, 0));
+	      new Vector3$1(0, spacing * i, 0),
+	      new Vector3$1(spacing * w, spacing * i, 0));
 	  var material = new LineBasicMaterial({ "color": 0xFFFFFF });
 	  LineSegments.call(this, geom, material);
 
@@ -42443,32 +42441,33 @@
 
 	FutureMesh.create = Base.create;
 
-	FutureMesh.init = function(url, loader, callback) {
+	FutureMesh.init = function(url, loader, tex_url, tex_loader) {
 	  this.url = url;
 	  this.loader = loader;
-	  this.callback = callback;
 	  Mesh$3.call(this);
 	  this.userData = {
 	    "ready": false
 	  };
-	  this.loader.load(url, (function(geometry, materials) {
+	  this.loader.load(url, (function(geometry) {
 	    this.geometry = geometry;
-	    if(materials === undefined || materials.length > 0)
-	      this.material = new MeshLambertMaterial$1({"color": 0xFFFFFF});
-	    else {
-	      this.material = materials[0];
-	    }
 	    this.userData.ready = true;
-	    if(this.callback)
-	      this.callback();
 	  }).bind(this));
+	  if(tex_url && tex_loader) {
+	    this.tex_url = tex_url;
+	    this.tex_loader = tex_loader;
+	    tex_loader.load(tex_url, (function(texture) {
+	      this.texture = texture;
+	      this.material = new MeshLambertMaterial$1({"map": texture});
+	    }).bind(this));
+	  } else {
+	    this.material = new MeshLambertMaterial$1({"color": 0xFFFFFF});
+	  }
 	};
 
 	FutureMesh.clone = function(recursive) {
-	  // Don't duplicate the callback too
 	  return (this.userData.ready)? 
 	    Mesh$3.prototype.clone.call(this, recursive) : 
-	    FutureMesh.create(this.url, this.loader, function() {});
+	    FutureMesh.create(this.url, this.loader, this.tex_url, this.tex_loader);
 	}
 
 	FutureMesh.isReady = function() {
@@ -42478,35 +42477,123 @@
 	const Sprite = THREE.Sprite;
 	const Texture = THREE.Texture;
 	const SpriteMaterial = THREE.SpriteMaterial;
-	const FutureSprite = Object.create(Sprite.prototype);
-
-	FutureSprite.create = Base.create;
-
-	FutureSprite.init = function(url, loader, material_params) {
-	  Sprite.call(this);
-	  console.log(loader);
-	  this.loader = loader;
-	  this.done = false;
-	  this.mat_params = (material_params === undefined)? {} : material_params;
-	  this.url = url;
-	  this.loader.load(url, (function(texture) {
-	    this.mat_params["map"] = texture;
-	    this.material = new SpriteMaterial(this.mat_params);
-	    this.done = true;
-	  }).bind(this));
-	}
-
-	FutureSprite.clone = function(recursive) {
-	  return (this.done)?
-	    Sprite.prototype.call(this, recursive) :
-	    FutureSprite.create(this.url, this.loader, this.mat_params);
-	}
 
 	const Sprite$1 = THREE.Sprite;
 	const SpriteMaterial$1 = THREE.SpriteMaterial;
+	const Vector3$2 = THREE.Vector3;
+	const Matrix4 = THREE.Matrix4;
+	const Texture$1 = THREE.Texture;
+	const DataTexture = THREE.DataTexture;
+	const UnsignedByteType = THREE.UnsignedByteType;
+	const RGBAFormat = THREE.RGBAFormat;
 	const UVMapping = THREE.UVMapping;
+	const ClampToEdgeWrapping = THREE.ClampToEdgeWrapping;
 
-	const Vector3$1 = THREE.Vector3;
+	const SpriteText = Object.create(Sprite$1.prototype);
+
+	SpriteText.create = Base.create;
+
+	SpriteText.init = function(text, fgcolor, bgcolor, font, border, spacing, stroke) {
+	  // Allows canvas reuse but won't require it
+	  this.text = text;
+	  this.fgcolor = fgcolor;
+	  this.font = font;
+	  this.canvas = document.createElement("canvas");
+	  this.ctx = this.canvas.getContext("2d");
+	  this.ctx.font = this.font;
+	  this.bgcolor = (bgcolor === undefined)? null : bgcolor;
+	  this.stroke = (stroke === undefined)? false : stroke;
+	  this.offset = 0;
+	  var truewidth = 0;
+	  if(border) {
+	    spacing = (spacing === undefined)? 2 : spacing;
+	    this.offset = spacing + this.ctx.lineWidth;
+	  }
+	  var measure = this.ctx.measureText(text);
+	  this.truewidth = Math.ceil(measure.width + 2 * this.offset);
+	  // wonky way to get height
+	  this.trueheight = parseInt(this.font);
+	  if("actualBoundingBoxAscent" in measure && 
+	    "actualBoundingBoxDescent" in measure) {
+	    // easy, accurate way to get height
+	    this.trueheight = measure.actualBoundingBoxAscent + 
+	      measure.actualBoundingBoxDescent + 2 * this.offset;
+	  }
+	  // resize clears canvas state
+	  var resolution_scaling = 1;
+	  var upwidth = Math.pow(2, resolution_scaling + Math.ceil(Math.log2(this.truewidth)));
+	  var upheight = Math.pow(2, resolution_scaling + Math.ceil(Math.log2(this.trueheight)));
+	  this.canvas.width = upwidth;
+	  this.canvas.height = upheight;
+	  // Need to flip in canvas space first
+	  this.ctx.transform(1, 0, 0, -1, 0, upheight);
+	  this.ctx.fillStyle = this.fgcolor;
+	  this.ctx.strokeStyle = this.fgcolor;
+	  this.ctx.font = this.font;
+	  // Perform scaling to capture
+	  this.ctx.scale(upwidth / this.truewidth, upheight / this.trueheight);
+	  this.drawBackground();
+	  this.drawText();
+	  this.drawBorder();
+	  // draw the border
+	  var data = this.ctx.getImageData(0, 0, upwidth, upheight);
+	  var texture = new DataTexture(
+	    new Uint8Array(data.data), 
+	    data.width, 
+	    data.height, 
+	    RGBAFormat, 
+	    UnsignedByteType, 
+	    UVMapping, 
+	    ClampToEdgeWrapping, 
+	    ClampToEdgeWrapping);
+	  texture.needsUpdate = true;
+	  var material = new SpriteMaterial$1({"color": 0xffffff, "map": texture});
+	  Sprite$1.call(this, material);
+	  var scaleMatrix = new Matrix4();
+	  scaleMatrix.scale(new Vector3$2(this.truewidth / 100, this.trueheight / 100, 1));
+	  this.applyMatrix(scaleMatrix);
+	};
+
+	SpriteText.drawBackground = function() {
+	  this.ctx.save();
+	  this.ctx.globalCompositeOperation = "source-over";
+	  if(this.bgcolor) {
+	    this.ctx.fillStyle = this.bgcolor;
+	    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+	  } else
+	    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+	  this.ctx.restore();
+	};
+
+	SpriteText.drawText = function() {
+	  this.ctx.save();
+	  this.ctx.textBaseline = "top";
+	  this.ctx.textAlign = "left";
+	  this.ctx.globalCompositeOperation = "source-over";
+	  if(this.stroke)
+	    this.ctx.strokeText(this.text, this.offset, this.offset);
+	  else
+	    this.ctx.fillText(this.text, this.offset, this.offset);
+	  this.ctx.restore();
+	};
+
+	SpriteText.drawBorder = function() {
+	  this.ctx.save();
+	  this.ctx.globalCompositeOperation = "source-over";
+	  var lw = this.ctx.lineWidth;
+	  this.ctx.strokeRect(
+	    lw / 2,
+	    lw / 2,
+	    this.truewidth - lw,
+	    this.trueheight - lw);
+	  this.ctx.restore();
+	};
+
+	const Sprite$2 = THREE.Sprite;
+	const SpriteMaterial$2 = THREE.SpriteMaterial;
+	const UVMapping$1 = THREE.UVMapping;
+
+	const Vector3$3 = THREE.Vector3;
 
 	const Unit = Object.create(Selectable);
 
@@ -42551,7 +42638,7 @@
 	      return;
 	    this.lookAt(this.goal);
 	    this.translateOnAxis(
-	      new Vector3$1(0, 0, 1),
+	      new Vector3$3(0, 0, 1),
 	      Math.min(this.speed * dt, distance));
 	  }
 	}
@@ -42560,6 +42647,7 @@
 	const JSONLoader = THREE.JSONLoader;
 	const TextureLoader = THREE.TextureLoader;
 	const Mesh = THREE.Mesh;
+	const Vector3 = THREE.Vector3;
 
 	function init() {
 	  var canvas = document.getElementById("canvas");
@@ -42576,22 +42664,26 @@
 
 	  var serpent = FutureMesh.create("resources/serpent.json", mesh_loader);
 	  var space_station = FutureMesh.create("resources/space-station.json", mesh_loader);
-	  var tank = FutureMesh.create("resources/tank.json", mesh_loader);
+	  var tank = FutureMesh.create("resources/tank.json", mesh_loader, "resources/tank_shuttle.png", tex_loader);
 
-	  var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
-	  var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
+	  // var start_sprite = FutureSprite.create("resources/start.png", tex_loader);
+	  // var quit_sprite = FutureSprite.create("resources/quit.png", tex_loader);
+
+	  var start_sprite = SpriteText.create("Start", "#0000FF", null, "20px Helvetica", true);
+	  var middle_sprite = SpriteText.create("Middle", "#0000FF", null, "20px Helvetica", true);
+	  var quit_sprite = SpriteText.create("Quit", "#0000FF", null, "20px Helvetica", true);
 
 	  var options = [
 	    Selectable.create(start_sprite.clone()),
-	    Selectable.create(space_station.clone()),
+	    Selectable.create(middle_sprite.clone()),
 	    Selectable.create(quit_sprite.clone())];
 
-	  options[0].position.z = -1000;
-	  options[0].position.x = -20;
-	  options[1].position.z = -1000;
+	  options[0].position.z = -100;
+	  options[0].position.x = -2;
+	  options[1].position.z = -100;
 	  options[1].position.x = 0;
-	  options[2].position.z = -1000;
-	  options[2].position.x = 20;
+	  options[2].position.z = -100;
+	  options[2].position.x = 2;
 
 	  var playscreen = MapScreen.create(renderer, [])
 
@@ -42629,7 +42721,7 @@
 	  }).bind(graph));
 
 	  // Start everything up
-	  load_geom.callback = graph.open.bind(graph);
+	  graph.open();
 	}
 
 	// Perform startup actions
