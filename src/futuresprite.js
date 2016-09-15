@@ -10,7 +10,6 @@ FutureSprite.create = Base.create;
 
 FutureSprite.init = function(url, loader, material_params) {
   Sprite.call(this);
-  console.log(loader);
   this.loader = loader;
   this.done = false;
   this.mat_params = (material_params === undefined)? {} : material_params;

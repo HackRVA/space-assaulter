@@ -1,61 +1,90 @@
-import Base from 'canvas-screens';
+import { Base } from 'canvas-screens';
 import THREE from 'three';
 
 const Sprite = THREE.Sprite;
 const SpriteMaterial = THREE.SpriteMaterial;
+const Vector3 = THREE.Vector3;
+const Matrix4 = THREE.Matrix4;
 const Texture = THREE.Texture;
+const DataTexture = THREE.DataTexture;
+const UnsignedByteType = THREE.UnsignedByteType;
+const RGBAFormat = THREE.RGBAFormat;
+const UVMapping = THREE.UVMapping;
+const ClampToEdgeWrapping = THREE.ClampToEdgeWrapping;
 
 export const SpriteText = Object.create(Sprite.prototype);
 
 SpriteText.create = Base.create;
 
-SpriteText.init = function(text, ctx, bgcolor, border, spacing, stroke) {
+SpriteText.init = function(text, fgcolor, bgcolor, font, border, spacing, stroke) {
   // Allows canvas reuse but won't require it
-  this.ctx = ctx;
-  this.canvas = ctx.canvas;
-  this.bgcolor = (bgcolor === undefined) null : bgcolor;
-  this.stroke = (stroke === undefined) false : stroke;
-  var canvas = ctx.canvas;
+  this.text = text;
+  this.fgcolor = fgcolor;
+  this.font = font;
+  this.canvas = document.createElement("canvas");
+  this.ctx = this.canvas.getContext("2d");
+  this.ctx.font = this.font;
+  this.bgcolor = (bgcolor === undefined)? null : bgcolor;
+  this.stroke = (stroke === undefined)? false : stroke;
   this.offset = 0;
   var truewidth = 0;
   if(border) {
-    spacing = (spacing === undefined) 2 : spacing;
-    this.offset = spacing + ctx.lineWidth;
+    spacing = (spacing === undefined)? 2 : spacing;
+    this.offset = spacing + this.ctx.lineWidth;
   }
-  var measure = ctx.measureText(text);
-  this.truewidth = Math.ceil(measure.width + 2 * offset);
+  var measure = this.ctx.measureText(text);
+  this.truewidth = Math.ceil(measure.width + 2 * this.offset);
   // wonky way to get height
-  this.maxheight = 2 * parseInt(ctx.font);
+  this.trueheight = parseInt(this.font);
   if("actualBoundingBoxAscent" in measure && 
     "actualBoundingBoxDescent" in measure) {
-    // easy way to get height
+    // easy, accurate way to get height
     this.trueheight = measure.actualBoundingBoxAscent + 
       measure.actualBoundingBoxDescent + 2 * this.offset;
-    this.maxheight = this.trueheight;
   }
-  canvas.width = Math.max(truewidth, canvas.width);
-  canvas.height = Math.max(maxheight, canvas.height);
+  // resize clears canvas state
+  var resolution_scaling = 1;
+  var upwidth = Math.pow(2, resolution_scaling + Math.ceil(Math.log2(this.truewidth)));
+  var upheight = Math.pow(2, resolution_scaling + Math.ceil(Math.log2(this.trueheight)));
+  this.canvas.width = upwidth;
+  this.canvas.height = upheight;
+  // Need to flip in canvas space first
+  this.ctx.transform(1, 0, 0, -1, 0, upheight);
+  this.ctx.fillStyle = this.fgcolor;
+  this.ctx.strokeStyle = this.fgcolor;
+  this.ctx.font = this.font;
+  // Perform scaling to capture
+  this.ctx.scale(upwidth / this.truewidth, upheight / this.trueheight);
   this.drawBackground();
   this.drawText();
-  if(!("trueheight" in this)) {
-    // TODO calculate trueheight the hard way
-    this.trueheight = this.maxheight;
-  }
   this.drawBorder();
   // draw the border
-  var texture = new Texture(this.canvas.getImageData(0, 0, this.truewidth, this.trueheight));
-  var material = new SpriteMaterial({"map": texture});
+  var data = this.ctx.getImageData(0, 0, upwidth, upheight);
+  var texture = new DataTexture(
+    new Uint8Array(data.data), 
+    data.width, 
+    data.height, 
+    RGBAFormat, 
+    UnsignedByteType, 
+    UVMapping, 
+    ClampToEdgeWrapping, 
+    ClampToEdgeWrapping);
+  texture.needsUpdate = true;
+  var material = new SpriteMaterial({"color": 0xffffff, "map": texture});
   Sprite.call(this, material);
+  var scaleMatrix = new Matrix4();
+  scaleMatrix.scale(new Vector3(this.truewidth / 100, this.trueheight / 100, 1));
+  this.applyMatrix(scaleMatrix);
 };
 
 SpriteText.drawBackground = function() {
   this.ctx.save();
   this.ctx.globalCompositeOperation = "source-over";
-  if(this.bgcolor)
+  if(this.bgcolor) {
     this.ctx.fillStyle = this.bgcolor;
-    this.ctx.fillRect(this.canvas.width, this.canvas.height);
-  else
-    this.ctx.clearRect(this.canvas.width, this.canvas.height);
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+  } else
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   this.ctx.restore();
 };
 
@@ -65,21 +94,21 @@ SpriteText.drawText = function() {
   this.ctx.textAlign = "left";
   this.ctx.globalCompositeOperation = "source-over";
   if(this.stroke)
-    ctx.strokeText(this.text, this.offset, this.offset);
+    this.ctx.strokeText(this.text, this.offset, this.offset);
   else
-    ctx.fillText(this.text, this.offset, this.offset);
+    this.ctx.fillText(this.text, this.offset, this.offset);
   this.ctx.restore();
 };
 
 SpriteText.drawBorder = function() {
   this.ctx.save();
-  var lw = this.ctx.lineWidth;
   this.ctx.globalCompositeOperation = "source-over";
+  var lw = this.ctx.lineWidth;
   this.ctx.strokeRect(
     lw / 2,
     lw / 2,
-    this.truewidth - lw + 2 * this.offset,
-    this.trueheight - lw + 2 * this.offset);
+    this.truewidth - lw,
+    this.trueheight - lw);
   this.ctx.restore();
 };
 
