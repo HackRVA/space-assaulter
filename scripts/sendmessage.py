@@ -9,8 +9,9 @@ def db_ops(cur, sock, sockin):
   form = cgi.FieldStorage()
   data = json.load(sockin)
   cur.execute(
-    "INSERT INTO messages (user_id, message) VALUES (%s, %s);",
-    data["id"],
+    "INSERT INTO messages (sender, recipient, message) VALUES (%s, %s, %s);",
+    data["sender"],
+    data["recipient"],
     data["message"])
   json.dump(
     { "id": cur.lastrowid },
