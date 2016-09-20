@@ -1,25 +1,14 @@
-CREATE TABLE rooms (
+CREATE TABLE users (
   id INT NOT NULL AUTO_INCREMENT,
   name VARCHAR(20),
   CONSTRAINT pk_id PRIMARY KEY(id));
 
-CREATE TABLE offers (
+CREATE TABLE messages (
   id INT NOT NULL AUTO_INCREMENT,
-  used BOOLEAN DEFAULT FALSE,
-  room_id INT NOT NULL,
-  sdp_type VARCHAR(8),
-  sdp TEXT,
+  message TEXT,
+  sender INT NOT NULL,
+  recipient INT NOT NULL,
   CONSTRAINT pk_id PRIMARY KEY(id),
-  CONSTRAINT fk_room_id FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE CASCADE);
-
-CREATE TABLE answers (
-  id INT NOT NULL AUTO_INCREMENT,
-  used BOOLEAN DEFAULT FALSE,
-  room_id INT NOT NULL,
-  offer_id INT NOT NULL,
-  sdp_type VARCHAR(8),
-  sdp TEXT,
-  CONSTRAINT pk_id PRIMARY KEY(id),
-  CONSTRAINT fk_room_id FOREIGN KEY(room_id) REFERENCES rooms(id) ON DELETE CASCADE,
-  CONSTRAINT fk_offer_id FOREIGN KEY(offer_id) REFERENCES offers(id) ON DELETE CASCADE);
+  CONSTRAINT fk_sender FOREIGN KEY(sender) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_recipient FOREIGN KEY(recipient) REFERENCES users(id) ON DELETE CASCADE);
 
