@@ -7,7 +7,7 @@ from wrap import wrap_db, wrap_cgi
 
 def db_ops(cur, sock):
   form = cgi.FieldStorage();
-  cur.execute("DELETE FROM users WHERE id=%s;", form.get("id"))
+  cur.execute("DELETE FROM users WHERE id=%s;", (form.getvalue("id"), ))
   json.dump({"dropped": cur.rowcount }, sock)
 
 def cgi_ops(sock):

@@ -1,0 +1,8 @@
+{
+  "signaling-type": "CGI",
+  "signaling-list": "cgi-bin/signaling/listids.py",
+  "signaling-create": "cgi-bin/signaling/createid.py",
+  "signaling-destroy": "cgi-bin/signaling/destroyid.py",
+  "signaling-send": "cgi-bin/signaling/sendmessage.py",
+  "signaling-poll": "cgi-bin/signaling/getmessages.py"
+}

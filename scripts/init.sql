@@ -1,6 +1,5 @@
 CREATE TABLE users (
   id INT NOT NULL AUTO_INCREMENT,
-  name VARCHAR(20),
   CONSTRAINT pk_id PRIMARY KEY(id));
 
 CREATE TABLE messages (
@@ -11,4 +10,7 @@ CREATE TABLE messages (
   CONSTRAINT pk_id PRIMARY KEY(id),
   CONSTRAINT fk_sender FOREIGN KEY(sender) REFERENCES users(id) ON DELETE CASCADE,
   CONSTRAINT fk_recipient FOREIGN KEY(recipient) REFERENCES users(id) ON DELETE CASCADE);
+
+# Create the broadcast user
+INSERT INTO users () VALUES ();
 

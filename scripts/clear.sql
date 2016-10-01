@@ -1,0 +1,3 @@
+
+DROP TABLES messages, users;
+

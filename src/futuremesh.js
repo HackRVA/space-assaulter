@@ -37,7 +37,7 @@ FutureMesh.clone = function(recursive) {
   return (this.userData.ready)? 
     Mesh.prototype.clone.call(this, recursive) : 
     FutureMesh.create(this.url, this.loader, this.tex_url, this.tex_loader);
-}
+};
 
 FutureMesh.isReady = function() {
   return this.userData.ready;

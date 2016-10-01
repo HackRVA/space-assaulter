@@ -17,6 +17,7 @@ def wrap_db(ops, sock, *extra):
       json.dump({"error": "Failed during cursor operations"}, sock)
       return True
     finally:
+      db.commit()
       db.close()
   except:
     json.dump({"error": "Failed during database opening"}, sock)

@@ -5,8 +5,8 @@ import json
 from wrap import wrap_db, wrap_cgi
 
 def db_ops(cur, sock):
-  cur.execute("SELECT id, name FROM users;")
-  json.dump([{ "id": user_id, "name": name } for (user_id, name) in cur], sock)
+  cur.execute("SELECT id FROM users;")
+  json.dump([user_id for (user_id, ) in cur], sock)
 
 def get_ops(sock):
   wrap_db(db_ops, sock)

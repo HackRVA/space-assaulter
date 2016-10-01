@@ -1,4 +1,5 @@
 import { ClickScreen } from './clickscreen.js';
+import { CGIConnection, DataChannelConnection } from './connection.js';
 
 export const MatchScreen = Object.create(ClickScreen);
 
@@ -9,9 +10,9 @@ MatchScreen.init = function(renderer) {
   ClickScreen.init.call(this, renderer, options);
   // the default host
   this.server_host = "hackrva.org";
-  this.room_path = "cgi-bin/rooms.py"
+  this.room_path = "cgi-bin/rooms.py";
   console.log(window.location.host);
-}
+};
 
 MatchScreen.queryServer = function() {
   // Don't sweat Internet Explorer support
@@ -19,10 +20,10 @@ MatchScreen.queryServer = function() {
   xhr.addEventListener("load", this.receiveRooms.bind(this, xhr), false);
   xhr.open("GET", this.server_host + "/" + this.room_path, true);
   xhr.send();
-}
+};
 
 MatchScreen.receiveRooms = function(xhr, e) {
   // parse the received rooms
   
-}
+};
 
