@@ -1,4 +1,6 @@
 import { Base } from 'canvas-screens';
+import { Sprite, SpriteMaterial, Vector3, Matrix4, Texture, DataTexture, UnsignedByteType, RGBAFormat, UVMapping, ClampToEdgeWrapping } from 'three';
+/*
 import THREE from 'three';
 
 const Sprite = THREE.Sprite;
@@ -11,6 +13,7 @@ const UnsignedByteType = THREE.UnsignedByteType;
 const RGBAFormat = THREE.RGBAFormat;
 const UVMapping = THREE.UVMapping;
 const ClampToEdgeWrapping = THREE.ClampToEdgeWrapping;
+*/
 
 export const SpriteText = Object.create(Sprite.prototype);
 

@@ -1,7 +1,10 @@
+import { Base } from 'canvas-screens';
+import { Mesh, MeshLambertMaterial } from 'three';
+/*
 import THREE from 'three';
 const Mesh = THREE.Mesh;
 const MeshLambertMaterial = THREE.MeshLambertMaterial;
-import { Base } from 'canvas-screens';
+*/
 
 // A trick for making Meshes asynchronously
 // Overall, so long as we check that the loader finishes first, this makes

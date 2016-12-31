@@ -1,7 +1,10 @@
 import { NestingScreen } from './nestingscreen.js';
+import { Vector2, Raycaster } from 'three';
+/*
 import THREE from 'three';
 const Vector2 = THREE.Vector2;
 const Raycaster = THREE.Raycaster;
+*/
 
 function getMousePosition(e, target) {
   var vect = new Vector2();
