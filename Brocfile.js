@@ -7,7 +7,7 @@ var src = "src";
 
 // Create a different resolver
 
-var web = Rollup(src, {
+var web = new Rollup(src, {
   "inputFiles": ["*.js"],
   "rollup": {
     "entry": "entry.js",
@@ -26,7 +26,7 @@ var web = Rollup(src, {
   }
 });
 
-var webworker = Rollup(src, {
+var webworker = new Rollup(src, {
   "inputFiles": ["*.js"],
   "rollup": {
     "entry": "simworker.js",
