@@ -1,8 +1,10 @@
 import { Screen } from 'canvas-screens';
-// import { Scene, PerspectiveCamera } from 'three';
+import { Scene, PerspectiveCamera } from 'three';
+/*
 import THREE from 'three';
 const Scene = THREE.Scene;
 const PerspectiveCamera = THREE.PerspectiveCamera;
+*/
 
 export const GLScreen = Object.create(Screen);
 

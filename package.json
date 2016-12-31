@@ -33,12 +33,12 @@
   "devDependencies": {
     "broccoli-cli": "^1.0.0",
     "broccoli-merge-trees": "^1.1.2",
-    "broccoli-rollup": "0.0.4",
+    "broccoli-rollup": "1.0.3",
     "canvas-screens": "git://github.com/Matt5sean3/canvas-screens.git",
     "jshint": "^2.9.2",
-    "rollup-plugin-commonjs": "^3.3.1",
-    "rollup-plugin-node-resolve": "^1.7.1",
-    "three": "^0.79.0"
+    "rollup-plugin-commonjs": "^7.0.0",
+    "rollup-plugin-node-resolve": "^2.0.0",
+    "three": "^0.83.0"
   },
   "jshintConfig": {
     "esversion": 6

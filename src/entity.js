@@ -1,6 +1,9 @@
 import { Base } from 'canvas-screens';
+import { Object3D } from 'three';
+/*
 import THREE from 'three';
 const Object3D = THREE.Object3D;
+*/
 
 // Could be a problem depending on how Object3D is defined
 export const Entity = Object.create(Object3D.prototype);

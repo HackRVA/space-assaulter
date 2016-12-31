@@ -1,7 +1,8 @@
 import { ClickScreen } from './clickscreen.js';
 import { Base } from 'canvas-screens';
+import { LineSegments, Geometry, Vector2, Vector3, LineBasicMaterial, Object3D, AmbientLight, DirectionalLight, SpotLight, PlaneGeometry, Mesh } from 'three';
+/*
 import THREE from 'three';
-
 const LineSegments = THREE.LineSegments;
 const Geometry = THREE.Geometry;
 const Vector2 = THREE.Vector2;
@@ -13,6 +14,7 @@ const DirectionalLight = THREE.DirectionalLight;
 const SpotLight = THREE.SpotLight;
 const PlaneGeometry = THREE.PlaneGeometry;
 const Mesh = THREE.Mesh;
+*/
 
 export const Grid = Object.create(LineSegments.prototype);
 

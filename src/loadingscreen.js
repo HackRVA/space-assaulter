@@ -1,11 +1,13 @@
 import { NestingScreen } from './nestingscreen.js';
-// import { LoadingManager } from 'three';
+import { LoadingManager, Mesh, SpotLight, MeshLambertMaterial, JSONLoader } from 'three';
+/*
 import THREE from 'three';
 const LoadingManager = THREE.LoadingManager;
 const Mesh = THREE.Mesh;
 const SpotLight = THREE.SpotLight;
 const MeshLambertMaterial = THREE.MeshLambertMaterial;
 const JSONLoader = THREE.JSONLoader;
+*/
 
 // Fades in a light above the hack.rva logo
 

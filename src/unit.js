@@ -1,7 +1,10 @@
 import { Selectable } from './selectable.js';
 import { UnitInfo } from './unitinfo.js';
+import { Vector3 } from 'three';
+/*
 import THREE from 'three';
 const Vector3 = THREE.Vector3;
+*/
 
 export const Unit = Object.create(Selectable);
 

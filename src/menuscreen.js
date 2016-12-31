@@ -1,9 +1,13 @@
 import { ClickScreen } from './clickscreen.js';
 import { Screen } from 'canvas-screens';
 import { GLScreen } from './glscreen.js';
+import { DirectionalLight, AmbientLight } from 'three';
+
+/*
 import THREE from 'three';
 const DirectionalLight = THREE.DirectionalLight;
 const AmbientLight = THREE.AmbientLight;
+*/
 
 export const MenuScreen = Object.create(ClickScreen);
 

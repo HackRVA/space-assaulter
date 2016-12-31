@@ -10,12 +10,15 @@ import { FutureMesh } from './futuremesh.js';
 import { FutureSprite } from './futuresprite.js';
 import { SpriteText } from './spritetext.js';
 import { Unit } from './unit.js';
+import { WebGLRenderer, JSONLoader, TextureLoader, Mesh, Vector3 } from 'three';
+/*
 import THREE from 'three';
 const WebGLRenderer = THREE.WebGLRenderer;
 const JSONLoader = THREE.JSONLoader;
 const TextureLoader = THREE.TextureLoader;
 const Mesh = THREE.Mesh;
 const Vector3 = THREE.Vector3;
+*/
 
 export function init() {
   var canvas = document.getElementById("canvas");

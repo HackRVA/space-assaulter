@@ -1,8 +1,11 @@
+import { Base } from 'canvas-screens';
+import { Sprite, Texture, SpriteMaterial } from 'three';
+/*
 import THREE from 'three';
 const Sprite = THREE.Sprite;
 const Texture = THREE.Texture;
 const SpriteMaterial = THREE.SpriteMaterial;
-import { Base } from 'canvas-screens';
+*/
 
 export const FutureSprite = Object.create(Sprite.prototype);
 
