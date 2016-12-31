@@ -53,7 +53,7 @@ export function init() {
   options[2].position.z = -100;
   options[2].position.x = 2;
 
-  var playscreen = MapScreen.create(renderer, [])
+  var playscreen = MapScreen.create(renderer, []);
 
   var serpent_unit = Unit.create(serpent.clone());
   serpent_unit.position.x = -20;

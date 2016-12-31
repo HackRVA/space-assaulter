@@ -28,15 +28,15 @@ Unit.damage = function(base_damage) {
   this.life -= base_damage;
   if(this.life < 0)
     this.onDeath();
-}
+};
 
 Unit.onDeath = function() {
-}
+};
 
 Unit.setGoal = function(pos) {
   this.goal = pos;
   this.lookAt(this.goal);
-}
+};
 
 Unit.update = function(dt) {
   // Move toward the point
@@ -49,5 +49,5 @@ Unit.update = function(dt) {
       new Vector3(0, 0, 1),
       Math.min(this.speed * dt, distance));
   }
-}
+};
 

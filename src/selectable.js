@@ -55,12 +55,12 @@ Selectable.deselect = function() {
 };
 
 Selectable.cast = function(e, ray) {
-  if(e.button == 0)
+  if(e.button === 0)
     if(ray.intersectObject(this.bbox).length > 0)
       this.select();
     else
       this.deselect();
-}
+};
 
 Selectable.isSelected = function() {
   return this.selected;
